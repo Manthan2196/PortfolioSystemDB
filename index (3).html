@@ -1,0 +1,2175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TradeFlow — Stock Trading Platform</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════ RESET & TOKENS ═══════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090f;--bg2:#0c1120;--bg3:#111827;--bg4:#16213a;
+  --surface:#1a2236;--surface2:#1e2a40;--surface3:#243050;--surface4:#2a3860;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--border3:rgba(255,255,255,0.18);
+  --text:#edf2ff;--text2:#8899b8;--text3:#4a5a78;--text4:#2a3a58;
+  --green:#00d4a0;--green2:#00b88a;--green3:#009070;
+  --green-bg:rgba(0,212,160,0.08);--green-bg2:rgba(0,212,160,0.15);
+  --red:#ff4d6a;--red2:#e0304a;--red3:#c02040;
+  --red-bg:rgba(255,77,106,0.08);--red-bg2:rgba(255,77,106,0.15);
+  --blue:#4d9fff;--blue2:#3080e8;--blue-bg:rgba(77,159,255,0.08);
+  --amber:#ffb830;--amber2:#e09800;--amber-bg:rgba(255,184,48,0.08);
+  --purple:#a78bfa;--purple-bg:rgba(167,139,250,0.08);
+  --accent:#00d4a0;--accent2:#00b88a;
+  --r:8px;--r2:12px;--r3:16px;--r4:20px;
+  --shadow:0 4px 24px rgba(0,0,0,0.5);
+  --shadow2:0 8px 40px rgba(0,0,0,0.6);
+  --t:0.18s ease;--t2:0.3s ease;
+  --sidebar:248px;
+}
+.light{
+  --bg:#f0f4ff;--bg2:#e6ecf8;--bg3:#dde4f2;--bg4:#d0daf0;
+  --surface:#fff;--surface2:#f5f7ff;--surface3:#edf0ff;--surface4:#e5eaff;
+  --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.12);--border3:rgba(0,0,0,0.18);
+  --text:#0c1222;--text2:#3a4a68;--text3:#7080a0;--text4:#a0b0c8;
+  --green:#008060;--green2:#006a50;--green3:#005040;
+  --green-bg:rgba(0,128,96,0.08);--green-bg2:rgba(0,128,96,0.15);
+  --red:#d02040;--red2:#b01030;--red3:#900020;
+  --red-bg:rgba(208,32,64,0.08);--red-bg2:rgba(208,32,64,0.15);
+  --blue:#1848c0;--blue2:#0e38a0;--blue-bg:rgba(24,72,192,0.08);
+  --amber:#b07000;--amber2:#905800;--amber-bg:rgba(176,112,0,0.08);
+  --purple:#5030a0;--purple-bg:rgba(80,48,160,0.08);
+  --accent:#008060;--accent2:#006a50;
+  --shadow:0 4px 24px rgba(0,0,0,0.08);--shadow2:0 8px 40px rgba(0,0,0,0.12);
+}
+
+/* ═══════════════ BASE ═══════════════ */
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.5;
+  min-height:100vh;transition:background var(--t2),color var(--t2);
+  -webkit-font-smoothing:antialiased;
+}
+#root{display:flex;min-height:100vh}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--border3)}
+
+/* ═══════════════ TYPOGRAPHY ═══════════════ */
+.syne{font-family:'Syne',sans-serif}
+.mono{font-family:'DM Mono',monospace}
+.pos{color:var(--green)}
+.neg{color:var(--red)}
+.muted{color:var(--text2)}
+.hint{color:var(--text3)}
+
+/* ═══════════════ INPUTS ═══════════════ */
+input,select,textarea{
+  background:var(--bg3);border:1px solid var(--border2);color:var(--text);
+  border-radius:var(--r);padding:10px 14px;
+  font-family:inherit;font-size:14px;outline:none;width:100%;
+  transition:border-color var(--t),box-shadow var(--t),background var(--t);
+}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,160,0.1)}
+input::placeholder{color:var(--text3)}
+input[disabled]{opacity:0.5;cursor:not-allowed}
+select{cursor:pointer;appearance:none}
+
+/* ═══════════════ BUTTONS ═══════════════ */
+button{cursor:pointer;font-family:inherit;font-size:14px;border:none;transition:all var(--t)}
+button:disabled{opacity:0.6;cursor:not-allowed;transform:none !important}
+button:active:not(:disabled){transform:scale(0.97)}
+.btn{padding:10px 20px;border-radius:var(--r);font-weight:500;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#07090f;font-weight:700}
+.btn-primary:hover:not(:disabled){background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,212,160,0.3)}
+.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--text)}
+.btn-outline:hover:not(:disabled){background:var(--surface2);border-color:var(--border3)}
+.btn-ghost{background:transparent;border:none;color:var(--text2);padding:6px 10px;border-radius:var(--r)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.btn-buy{background:var(--green);color:#07090f;font-weight:700;border-radius:var(--r);padding:13px 28px}
+.btn-buy:hover:not(:disabled){background:var(--green2);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,212,160,0.35)}
+.btn-sell{background:var(--red);color:#fff;font-weight:700;border-radius:var(--r);padding:13px 28px}
+.btn-sell:hover:not(:disabled){background:var(--red2);transform:translateY(-1px);box-shadow:0 4px 20px rgba(255,77,106,0.35)}
+.btn-sm{padding:5px 12px;font-size:12px;border-radius:var(--r)}
+.btn-icon{padding:7px;border-radius:var(--r);display:inline-flex;align-items:center;justify-content:center}
+
+/* ═══════════════ CARDS ═══════════════ */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:20px;transition:border-color var(--t)}
+.card:hover{border-color:var(--border2)}
+.card-sm{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+
+/* ═══════════════ BADGES ═══════════════ */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.03em;white-space:nowrap}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-blue{background:var(--blue-bg);color:var(--blue)}
+.badge-amber{background:var(--amber-bg);color:var(--amber)}
+.badge-purple{background:var(--purple-bg);color:var(--purple)}
+
+/* ═══════════════ TABLES ═══════════════ */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;padding:10px 14px;border-bottom:1px solid var(--border)}
+td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:13px}
+tr:last-child td{border-bottom:none}
+tbody tr{transition:background var(--t)}
+tbody tr:hover td{background:var(--surface2)}
+
+/* ═══════════════ LAYOUT ═══════════════ */
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+@media(max-width:1100px){.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){.grid3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.grid2,.grid3,.grid4{grid-template-columns:1fr}}
+.flex{display:flex;align-items:center}
+.flex-between{display:flex;align-items:center;justify-content:space-between}
+.flex-col{display:flex;flex-direction:column}
+.gap4{gap:4px}.gap8{gap:8px}.gap12{gap:12px}.gap16{gap:16px}.gap20{gap:20px}
+.wrap{flex-wrap:wrap}
+.flex1{flex:1}
+.ovx{overflow-x:auto}
+.mb4{margin-bottom:4px}.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}
+.mb16{margin-bottom:16px}.mb20{margin-bottom:20px}.mb24{margin-bottom:24px}
+
+/* ═══════════════ SIDEBAR ═══════════════ */
+.sidebar{
+  width:var(--sidebar);background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;height:100vh;
+  z-index:300;transition:transform var(--t2);
+  overflow:hidden;
+}
+.sidebar-logo{padding:22px 18px 14px;border-bottom:1px solid var(--border)}
+.sidebar-nav{flex:1;overflow-y:auto;padding:10px 8px}
+.nav-section{font-size:10px;font-weight:700;color:var(--text4);text-transform:uppercase;letter-spacing:0.1em;padding:12px 12px 4px}
+.nav-item{
+  display:flex;align-items:center;gap:11px;
+  padding:9px 12px;border-radius:var(--r);
+  cursor:pointer;margin-bottom:1px;color:var(--text2);font-weight:500;
+  transition:background var(--t),color var(--t);font-size:13px;
+  position:relative;
+}
+.nav-item:hover{background:var(--surface);color:var(--text)}
+.nav-item.active{background:var(--surface3);color:var(--accent)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--accent);border-radius:0 3px 3px 0}
+.nav-item .n-icon{width:16px;height:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0.7}
+.nav-item.active .n-icon{opacity:1}
+.sidebar-footer{padding:12px 8px;border-top:1px solid var(--border)}
+.market-badge{background:var(--green-bg2);border:1px solid rgba(0,212,160,0.3);border-radius:var(--r);padding:10px 12px}
+
+/* ═══════════════ MAIN AREA ═══════════════ */
+.main{margin-left:var(--sidebar);flex:1;min-height:100vh;display:flex;flex-direction:column;transition:margin-left var(--t2)}
+.topbar{
+  height:54px;background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;position:sticky;top:0;z-index:200;
+}
+.content{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .topbar{padding:0 14px}
+  .content{padding:14px}
+}
+
+/* ═══════════════ TICKER ═══════════════ */
+.ticker{background:var(--bg3);border-bottom:1px solid var(--border);padding:5px 0;overflow:hidden;white-space:nowrap}
+.ticker-inner{display:inline-flex;gap:28px;animation:ticker 40s linear infinite}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ticker-item{font-family:'DM Mono',monospace;font-size:11px;display:inline-flex;align-items:center;gap:5px}
+
+/* ═══════════════ PAGE HEADERS ═══════════════ */
+.page-header{margin-bottom:24px}
+.page-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:2px;letter-spacing:-0.02em}
+.page-sub{color:var(--text3);font-size:13px}
+
+/* ═══════════════ STAT CARDS ═══════════════ */
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r2);padding:18px 20px;
+  position:relative;overflow:hidden;
+  transition:border-color var(--t),transform var(--t);
+}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--r2) var(--r2) 0 0}
+.stat-card.c-green::after{background:linear-gradient(90deg,var(--green),transparent)}
+.stat-card.c-blue::after{background:linear-gradient(90deg,var(--blue),transparent)}
+.stat-card.c-red::after{background:linear-gradient(90deg,var(--red),transparent)}
+.stat-card.c-amber::after{background:linear-gradient(90deg,var(--amber),transparent)}
+.stat-card.c-purple::after{background:linear-gradient(90deg,var(--purple),transparent)}
+.stat-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+.stat-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px;transition:all var(--t2)}
+.stat-sub{font-size:12px;display:flex;align-items:center;gap:4px;color:var(--text3)}
+
+/* ═══════════════ SECTION HEAD ═══════════════ */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.sec-title{font-weight:700;font-size:14px;display:flex;align-items:center;gap:7px;color:var(--text)}
+
+/* ═══════════════ CHARTS ═══════════════ */
+.chart-wrap{position:relative;width:100%}
+.chart-h220{height:220px}
+.chart-h260{height:260px}
+
+/* ═══════════════ TABS ═══════════════ */
+.tabs{display:flex;gap:2px;background:var(--bg3);padding:3px;border-radius:var(--r2);margin-bottom:20px;flex-wrap:wrap}
+.tab{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 16px;border-radius:var(--r);cursor:pointer;
+  font-weight:600;font-size:13px;color:var(--text3);
+  transition:background var(--t),color var(--t);
+}
+.tab:hover{color:var(--text2)}
+.tab.active{background:var(--surface3);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+
+/* ═══════════════ ANIMATIONS ═══════════════ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideRight{from{transform:translateX(-12px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes slideDown{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes countUp{from{transform:translateY(6px);opacity:0}to{transform:translateY(0);opacity:1}}
+.fade-up{animation:fadeUp 0.3s ease both}
+.fade-in{animation:fadeIn 0.25s ease both}
+.slide-right{animation:slideRight 0.25s ease both}
+.slide-down{animation:slideDown 0.2s ease both}
+[style*="--delay"]{animation-delay:var(--delay,0ms)}
+
+/* ═══════════════ SKELETON LOADER ═══════════════ */
+.skeleton{
+  background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%);
+  background-size:200% 100%;animation:shimmer 1.4s ease infinite;
+  border-radius:var(--r);
+}
+.sk-line{height:14px;margin-bottom:8px}
+.sk-line.h20{height:20px}
+.sk-line.h32{height:32px}
+.sk-line.h48{height:48px}
+.sk-line.w60{width:60%}
+.sk-line.w40{width:40%}
+.sk-line.w80{width:80%}
+.sk-table-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.sk-table-row:last-child{border-bottom:none}
+.sk-cell{height:14px;flex:1;border-radius:4px}
+
+/* ═══════════════ SPINNER ═══════════════ */
+.spinner{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;flex-shrink:0}
+.spinner-sm{width:14px;height:14px}
+.spinner-lg{width:32px;height:32px;border-width:3px}
+
+/* ═══════════════ LIVE DOT ═══════════════ */
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s ease infinite;display:inline-block;flex-shrink:0}
+
+/* ═══════════════ PROGRESS BAR ═══════════════ */
+.progress{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1)}
+
+/* ═══════════════ NOTIFICATIONS ═══════════════ */
+.notif-stack{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.notif{
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:14px 18px;
+  min-width:300px;max-width:380px;
+  box-shadow:var(--shadow2);pointer-events:all;
+  animation:slideRight 0.25s ease;
+}
+.notif-green{border-left:3px solid var(--green)}
+.notif-red{border-left:3px solid var(--red)}
+.notif-blue{border-left:3px solid var(--blue)}
+.notif-amber{border-left:3px solid var(--amber)}
+
+/* ═══════════════ INLINE STATUS ═══════════════ */
+.inline-err{background:var(--red-bg);border:1px solid var(--red);border-radius:var(--r);padding:10px 14px;color:var(--red);font-size:13px;display:flex;align-items:center;gap:8px;animation:slideDown 0.2s ease}
+.inline-ok{background:var(--green-bg);border:1px solid var(--green);border-radius:var(--r);padding:10px 14px;color:var(--green);font-size:13px;display:flex;align-items:center;gap:8px;animation:slideDown 0.2s ease}
+
+/* ═══════════════ LOGIN ═══════════════ */
+.login-root{min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;background:var(--bg);position:relative;overflow:hidden}
+.login-glow{position:absolute;border-radius:50%;pointer-events:none}
+.login-glow.g1{width:700px;height:700px;background:radial-gradient(circle,rgba(0,212,160,0.05) 0%,transparent 70%);top:-150px;left:-150px}
+.login-glow.g2{width:600px;height:600px;background:radial-gradient(circle,rgba(77,159,255,0.05) 0%,transparent 70%);bottom:-100px;right:-100px}
+.login-card{position:relative;z-index:1;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r3);padding:40px 36px;width:90%;max-width:420px;box-shadow:0 32px 80px rgba(0,0,0,0.6)}
+.login-field{margin-bottom:16px}
+.login-field label{display:block;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.09em;margin-bottom:6px}
+.login-hint{text-align:center;font-size:12px;color:var(--text3);margin-top:18px;line-height:1.6}
+.login-hint code{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-family:'DM Mono';color:var(--text2);font-size:11px}
+.login-divider{display:flex;align-items:center;gap:10px;margin:18px 0}
+.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.login-divider span{font-size:11px;color:var(--text3)}
+
+/* ═══════════════ STOCK COMPARE TOGGLES ═══════════════ */
+.stock-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:700;border:1.5px solid transparent;cursor:pointer;transition:all var(--t);background:var(--surface2);color:var(--text2)}
+.stock-chip:hover{background:var(--surface3);color:var(--text)}
+.stock-chip.on{color:#07090f}
+.stock-chip .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* ═══════════════ SPARKLINE ═══════════════ */
+.sparkline{display:block;flex-shrink:0}
+
+/* ═══════════════ ORDER FORM ═══════════════ */
+.order-type-btn{flex:1;padding:9px;font-size:13px;font-weight:700;border-radius:var(--r);text-align:center;cursor:pointer;transition:all var(--t);border:2px solid transparent}
+.order-type-btn.buy{background:var(--green-bg);color:var(--green);border-color:transparent}
+.order-type-btn.buy.active{background:var(--green);color:#07090f;border-color:var(--green)}
+.order-type-btn.sell{background:var(--red-bg);color:var(--red);border-color:transparent}
+.order-type-btn.sell.active{background:var(--red);color:#fff;border-color:var(--red)}
+
+/* ═══════════════ FIELD LABEL ═══════════════ */
+.field-label{display:block;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+
+/* ═══════════════ REFRESH BTN ═══════════════ */
+.refresh-spin{animation:spin 0.8s linear}
+
+/* ═══════════════ ROLE GUARD ═══════════════ */
+.access-denied{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px;color:var(--text3)}
+
+/* ═══════════════ RESPONSIVE NAV ═══════════════ */
+.mobile-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:299;backdrop-filter:blur(2px)}
+#menu-btn{display:none}
+@media(max-width:768px){#menu-btn{display:flex}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback, createContext, useContext, useMemo, useReducer } = React;
+
+/* ═══════════════════════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════════════════════ */
+const API_BASE = 'http://localhost:4000/api';
+
+/* ═══════════════════════════════════════════════════════
+   API LAYER — all HTTP calls go through here
+═══════════════════════════════════════════════════════ */
+const api = {
+  _token: null,
+  setToken(t){ this._token = t; },
+  headers(){
+    const h = { 'Content-Type':'application/json' };
+    if(this._token) h['Authorization'] = `Bearer ${this._token}`;
+    return h;
+  },
+  async req(method, path, body){
+    try {
+      const r = await fetch(API_BASE + path, {
+        method, headers: this.headers(),
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      const data = await r.json();
+      if(!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+      return data;
+    } catch(e) {
+      if(e.message === 'Failed to fetch') throw new Error('Cannot reach server. Is the backend running?');
+      throw e;
+    }
+  },
+  get:   (path)       => api.req('GET',    path),
+  post:  (path, body) => api.req('POST',   path, body),
+  del:   (path)       => api.req('DELETE', path),
+
+  // Auth
+  login:    (email, password) => api.post('/auth/login', { email, password }),
+  me:       ()                => api.get('/auth/me'),
+
+  // Stocks
+  stocks:        ()               => api.get('/stocks'),
+  priceHistory:  (sym, days=30)   => api.get(`/stocks/${sym}/history?days=${days}`),
+
+  // Orders
+  orders:        (status)  => api.get('/orders' + (status ? `?status=${status}` : '')),
+  trades:        ()        => api.get('/orders/trades'),
+  placeOrder:    (body)    => api.post('/orders', body),
+  cancelOrder:   (id)      => api.del(`/orders/${id}`),
+
+  // Portfolio
+  portfolio:     ()        => api.get('/portfolio'),
+
+  // Wallet
+  wallet:        ()        => api.get('/wallet'),
+  transactions:  ()        => api.get('/wallet/transactions'),
+  deposit:       (amt)     => api.post('/wallet/deposit',  { amount: amt }),
+  withdraw:      (amt)     => api.post('/wallet/withdraw', { amount: amt }),
+
+  // Admin (role-gated on backend)
+  adminLogs:     (level)   => api.get('/admin/logs' + (level && level!=='ALL' ? `?level=${level}` : '')),
+  adminDbTxns:   ()        => api.get('/admin/db-transactions'),
+  adminLocks:    ()        => api.get('/admin/locks'),
+  adminStats:    ()        => api.get('/admin/stats'),
+};
+
+/* ═══════════════════════════════════════════════════════
+   CHART COLOR PALETTE (per symbol)
+═══════════════════════════════════════════════════════ */
+const CHART_COLORS = {
+  AAPL: { border:'#00d4a0', bg:'rgba(0,212,160,0.07)'  },
+  TSLA: { border:'#4d9fff', bg:'rgba(77,159,255,0.07)' },
+  NVDA: { border:'#ffb830', bg:'rgba(255,184,48,0.07)' },
+  MSFT: { border:'#a78bfa', bg:'rgba(167,139,250,0.07)'},
+  GOOGL:{ border:'#ff4d6a', bg:'rgba(255,77,106,0.07)' },
+  AMZN: { border:'#38bdf8', bg:'rgba(56,189,248,0.07)' },
+  META: { border:'#fb923c', bg:'rgba(251,146,60,0.07)' },
+  BRK:  { border:'#a3e635', bg:'rgba(163,230,53,0.07)' },
+  JPM:  { border:'#e879f9', bg:'rgba(232,121,249,0.07)'},
+  V:    { border:'#f472b6', bg:'rgba(244,114,182,0.07)'},
+};
+const chartColor = (sym, i=0) => CHART_COLORS[sym] || {
+  border:['#00d4a0','#4d9fff','#ffb830','#a78bfa','#ff4d6a'][i%5],
+  bg:    ['rgba(0,212,160,0.07)','rgba(77,159,255,0.07)','rgba(255,184,48,0.07)','rgba(167,139,250,0.07)','rgba(255,77,106,0.07)'][i%5],
+};
+
+/* ═══════════════════════════════════════════════════════
+   GLOBAL STATE CONTEXT
+═══════════════════════════════════════════════════════ */
+const AppCtx = createContext();
+const useApp = () => useContext(AppCtx);
+
+/* ═══════════════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════════════ */
+const fmt = (n, d=2) => {
+  if(n==null||isNaN(n)) return '—';
+  const abs = Math.abs(n);
+  if(abs>=1e12) return (n/1e12).toFixed(1)+'T';
+  if(abs>=1e9)  return (n/1e9).toFixed(1)+'B';
+  if(abs>=1e6)  return (n/1e6).toFixed(1)+'M';
+  return Number(n).toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d});
+};
+const curr = n => '₹'+fmt(n);
+const pct  = (cur,prev) => prev ? (((cur-prev)/Math.abs(prev))*100).toFixed(2) : '0.00';
+const clsx = (...a) => a.filter(Boolean).join(' ');
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+/* ═══════════════════════════════════════════════════════
+   ICON COMPONENT (inline SVG, zero deps)
+═══════════════════════════════════════════════════════ */
+const ICONS = {
+  home:       'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10',
+  chart:      'M22 12h-4l-3 9L9 3l-3 9H2',
+  order:      'M9 11l3 3L22 4 M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11',
+  portfolio:  'M12 2L2 7l10 5 10-5-10-5M2 17l10 5 10-5M2 12l10 5 10-5',
+  wallet:     'M21 4H3a2 2 0 00-2 2v12a2 2 0 002 2h18a2 2 0 002-2V6a2 2 0 00-2-2z M16 10a1 1 0 100 2 1 1 0 000-2z',
+  history:    'M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14 M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3',
+  logs:       'M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8',
+  lock:       'M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2zM7 11V7a5 5 0 0110 0v4',
+  db:         'M12 2C6.48 2 2 4.24 2 7s4.48 5 10 5 10-2.24 10-5-4.48-5-10-5zM2 12c0 2.76 4.48 5 10 5s10-2.24 10-5M2 17c0 2.76 4.48 5 10 5s10-2.24 10-5',
+  sun:        'M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M12 5a7 7 0 100 14A7 7 0 0012 5z',
+  moon:       'M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z',
+  bell:       'M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0',
+  user:       'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z',
+  up:         'M12 19V5M5 12l7-7 7 7',
+  down:       'M12 5v14M19 12l-7 7-7-7',
+  trending_up:'M23 6l-9.5 9.5-5-5L1 18M17 6h6v6',
+  trending_dn:'M23 18l-9.5-9.5-5 5L1 6M17 18h6v-6',
+  search:     'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
+  refresh:    'M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15',
+  menu:       'M3 12h18M3 6h18M3 18h18',
+  x:          'M18 6L6 18M6 6l12 12',
+  check:      'M20 6L9 17l-5-5',
+  alert:      'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01',
+  info:       'M12 22a10 10 0 100-20 10 10 0 000 20zM12 8h.01M11 12h1v4h1',
+  eye:        'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 9a3 3 0 100 6 3 3 0 000-6z',
+  sign_out:   'M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9',
+  plus:       'M12 5v14M5 12h14',
+  filter:     'M22 3H2l8 9.46V19l4 2v-8.54L22 3',
+  shield:     'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+};
+const Icon = ({ name, size=16, color='currentColor', className='' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+       stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+       className={className} style={{flexShrink:0}}>
+    {(ICONS[name]||'').split('M').filter(Boolean).map((d,i)=>(
+      <path key={i} d={'M'+d}/>
+    ))}
+  </svg>
+);
+
+/* ═══════════════════════════════════════════════════════
+   SPARKLINE
+═══════════════════════════════════════════════════════ */
+const Sparkline = ({ data=[], positive=true, h=36, w=90 }) => {
+  if(!data.length) return <svg width={w} height={h}/>;
+  const vals = data.map(d=>parseFloat(d.price||d));
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const sy = v => h - ((v-min)/((max-min)||1))*(h-4)-2;
+  const pts = vals.map((v,i)=>`${(i/(vals.length-1))*w},${sy(v)}`).join(' ');
+  const color = positive ? 'var(--green)' : 'var(--red)';
+  return (
+    <svg width={w} height={h} className="sparkline" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.6" strokeLinejoin="round"/>
+    </svg>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════
+   SKELETON ROWS
+═══════════════════════════════════════════════════════ */
+const SkeletonTable = ({ rows=5, cols=6 }) => (
+  <div style={{padding:'4px 0'}}>
+    {Array.from({length:rows}).map((_,i)=>(
+      <div key={i} className="sk-table-row">
+        {Array.from({length:cols}).map((_,j)=>(
+          <div key={j} className={clsx('sk-cell skeleton')} style={{flex:[2,1.5,1,1,1,1][j]||1}}/>
+        ))}
+      </div>
+    ))}
+  </div>
+);
+const SkeletonCard = ({ h=80 }) => (
+  <div className="card" style={{height:h}}><div className="skeleton" style={{height:'100%',borderRadius:8}}/></div>
+);
+const SkeletonStats = ({ n=4 }) => (
+  <div className={`grid${n}`} style={{marginBottom:24}}>
+    {Array.from({length:n}).map((_,i)=>(
+      <div key={i} className="stat-card" style={{height:90}}>
+        <div className="skeleton sk-line w60 mb8"/>
+        <div className="skeleton sk-line h32 w80"/>
+      </div>
+    ))}
+  </div>
+);
+
+/* ═══════════════════════════════════════════════════════
+   NOTIFICATION SYSTEM
+═══════════════════════════════════════════════════════ */
+const NotifStack = ({ items, onRemove }) => (
+  <div className="notif-stack">
+    {items.map(n=>(
+      <div key={n.id} className={`notif notif-${n.type}`}>
+        <div className="flex-between" style={{marginBottom:n.msg?4:0}}>
+          <div className="flex gap8">
+            <Icon name={n.type==='green'?'check':n.type==='red'?'alert':'info'} size={14}
+                  color={n.type==='green'?'var(--green)':n.type==='red'?'var(--red)':'var(--blue)'}/>
+            <span style={{fontWeight:700,fontSize:13}}>{n.title}</span>
+          </div>
+          <button className="btn-ghost btn-icon btn-sm" onClick={()=>onRemove(n.id)} style={{padding:2}}>
+            <Icon name="x" size={12}/>
+          </button>
+        </div>
+        {n.msg && <div style={{fontSize:12,color:'var(--text2)',paddingLeft:22}}>{n.msg}</div>}
+      </div>
+    ))}
+  </div>
+);
+
+/* ═══════════════════════════════════════════════════════
+   CUSTOM HOOK: useData — fetch + loading + error + refetch
+═══════════════════════════════════════════════════════ */
+const useData = (fetcher, deps=[], options={}) => {
+  const [data,    setData]    = useState(options.initial ?? null);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
+  const [tick,    setTick]    = useState(0);
+
+  const refetch = useCallback(() => setTick(t=>t+1), []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetcher()
+      .then(d => { if(!cancelled){ setData(d); setLoading(false); } })
+      .catch(e => { if(!cancelled){ setError(e.message); setLoading(false); } });
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [...deps, tick]);
+
+  return { data, loading, error, refetch };
+};
+
+/* ═══════════════════════════════════════════════════════
+   ANIMATED NUMBER
+═══════════════════════════════════════════════════════ */
+const AnimNum = ({ value, prefix='', suffix='', className='' }) => {
+  const [display, setDisplay] = useState(value);
+  const prev = useRef(value);
+  useEffect(()=>{
+    if(prev.current===value){ setDisplay(value); return; }
+    const start = prev.current||0;
+    const end   = value||0;
+    const dur   = 600;
+    const t0    = Date.now();
+    const step  = () => {
+      const elapsed = Date.now()-t0;
+      const progress = Math.min(elapsed/dur,1);
+      const ease = 1-(1-progress)**3;
+      setDisplay(start+(end-start)*ease);
+      if(progress<1) requestAnimationFrame(step);
+      else { setDisplay(end); prev.current=end; }
+    };
+    requestAnimationFrame(step);
+    prev.current=value;
+  },[value]);
+  return (
+    <span className={className} style={{display:'inline-block',animation:'countUp 0.3s ease'}}>
+      {prefix}{fmt(display)}{suffix}
+    </span>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════
+   TOPBAR
+═══════════════════════════════════════════════════════ */
+const Topbar = ({ darkMode, setDarkMode, setSidebarOpen }) => {
+  const { wallet, user, handleLogout } = useApp();
+  const initials = (user?.name||'U').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  const balance = parseFloat(wallet?.balance||0);
+
+  return (
+    <div className="topbar">
+      <div className="flex gap12">
+        <button id="menu-btn" className="btn btn-icon btn-outline" onClick={()=>setSidebarOpen(p=>!p)}>
+          <Icon name="menu" size={17}/>
+        </button>
+        <div className="flex gap6" style={{fontSize:11,color:'var(--text3)',fontFamily:'DM Mono'}}>
+          <div className="live-dot"/>
+          <span style={{fontWeight:600,letterSpacing:'0.06em'}}>LIVE</span>
+          <span>• NSE 09:15–15:30</span>
+        </div>
+      </div>
+      <div className="flex gap10">
+        {/* Balance chip */}
+        <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:'var(--r)',padding:'6px 14px',fontSize:13,display:'flex',alignItems:'center',gap:8}}>
+          <Icon name="wallet" size={13} color="var(--text3)"/>
+          <span style={{color:'var(--text3)'}}>Balance</span>
+          <span style={{fontFamily:'DM Mono',fontWeight:700,color:'var(--accent)'}}>
+            {curr(balance)}
+          </span>
+        </div>
+        {/* Theme toggle */}
+        <button className="btn btn-icon btn-outline" onClick={()=>setDarkMode(!darkMode)} title="Toggle theme">
+          <Icon name={darkMode?'sun':'moon'} size={16}/>
+        </button>
+        {/* User + logout */}
+        <div className="flex gap8">
+          <div style={{width:32,height:32,borderRadius:'50%',background:'linear-gradient(135deg,var(--blue),var(--purple))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:800,color:'#fff',flexShrink:0}}>
+            {initials}
+          </div>
+          <div className="flex-col" style={{display:'none',alignItems:'flex-start',gap:0}}>
+            <span style={{fontSize:12,fontWeight:600}}>{user?.name}</span>
+            <span style={{fontSize:10,color:'var(--text3)'}}>{user?.role}</span>
+          </div>
+          <button className="btn btn-sm btn-outline flex gap6" onClick={handleLogout} title="Sign out">
+            <Icon name="sign_out" size={13}/>
+            <span style={{fontSize:11,fontWeight:600}}>Out</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════════════ */
+const Sidebar = ({ page, setPage, open, setOpen }) => {
+  const { user } = useApp();
+  const isAdmin = user?.role === 'ADMIN';
+  const nav = [
+    { id:'dashboard', label:'Dashboard',     icon:'home',      roles:['USER','ADMIN'] },
+    { id:'stocks',    label:'Markets',        icon:'chart',     roles:['USER','ADMIN'] },
+    { id:'order',     label:'Place Order',    icon:'order',     roles:['USER','ADMIN'] },
+    { id:'portfolio', label:'Portfolio',      icon:'portfolio', roles:['USER','ADMIN'] },
+    { id:'wallet',    label:'Wallet',         icon:'wallet',    roles:['USER','ADMIN'] },
+    { id:'history',   label:'Orders & Trades',icon:'history',   roles:['USER','ADMIN'] },
+  ];
+  const adminNav = [
+    { id:'logs',   label:'System Logs', icon:'logs', roles:['ADMIN'] },
+  ];
+  const go = id => { setPage(id); setOpen(false); };
+  return (
+    <div className={clsx('sidebar',open&&'open')}>
+      {/* Logo */}
+      <div className="sidebar-logo">
+        <div className="flex gap10">
+          <div style={{width:34,height:34,borderRadius:10,background:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+            <Icon name="chart" size={17} color="#07090f"/>
+          </div>
+          <div>
+            <div className="syne" style={{fontSize:16,fontWeight:800,letterSpacing:'-0.03em'}}>TradeFlow</div>
+            <div style={{fontSize:10,color:'var(--text3)',marginTop:-2}}>Stock Trading Platform</div>
+          </div>
+        </div>
+      </div>
+      {/* Nav */}
+      <nav className="sidebar-nav">
+        <div className="nav-section">Platform</div>
+        {nav.map(item=>(
+          <div key={item.id} className={clsx('nav-item',page===item.id&&'active')} onClick={()=>go(item.id)}>
+            <span className="n-icon"><Icon name={item.icon} size={15}/></span>
+            {item.label}
+          </div>
+        ))}
+        {isAdmin && <>
+          <div className="nav-section" style={{marginTop:8}}>Admin</div>
+          {adminNav.map(item=>(
+            <div key={item.id} className={clsx('nav-item',page===item.id&&'active')} onClick={()=>go(item.id)}>
+              <span className="n-icon"><Icon name={item.icon} size={15}/></span>
+              {item.label}
+            </div>
+          ))}
+        </>}
+      </nav>
+      {/* Footer */}
+      <div className="sidebar-footer">
+        <div className="market-badge">
+          <div style={{fontSize:10,color:'var(--green)',fontWeight:700,marginBottom:3,letterSpacing:'0.06em'}}>MARKET OPEN</div>
+          <div className="flex gap6" style={{fontSize:11,color:'var(--text2)'}}>
+            <div className="live-dot"/>
+            NSE • 09:15 – 15:30 IST
+          </div>
+        </div>
+        <div style={{marginTop:10,padding:'0 4px',fontSize:11,color:'var(--text3)',display:'flex',alignItems:'center',gap:6}}>
+          <Icon name="shield" size={12}/>
+          Logged in as <span style={{color:user?.role==='ADMIN'?'var(--amber)':'var(--accent)',fontWeight:700,marginLeft:3}}>{user?.role}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════
+   TICKER TAPE
+═══════════════════════════════════════════════════════ */
+const TickerTape = ({ stocks }) => {
+  if(!stocks?.length) return null;
+  const items = [...stocks,...stocks];
+  return (
+    <div className="ticker">
+      <div className="ticker-inner">
+        {items.map((s,i)=>{
+          const ch = parseFloat(pct(s.price,s.prev_price));
+          return (
+            <span key={i} className="ticker-item" style={{color:ch>=0?'var(--green)':'var(--red)'}}>
+              <span style={{color:'var(--text2)',fontWeight:600}}>{s.symbol}</span>
+              <span>{parseFloat(s.price).toFixed(2)}</span>
+              <span style={{fontSize:10}}>{ch>=0?'+':''}{ch}%</span>
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════
+   LOGIN PAGE
+═══════════════════════════════════════════════════════ */
+const LoginPage = ({ onLogin }) => {
+  const [email,    setEmail]    = useState('');
+  const [password, setPassword] = useState('');
+  const [showPw,   setShowPw]   = useState(false);
+  const [error,    setError]    = useState('');
+  const [loading,  setLoading]  = useState(false);
+
+  const submit = async (e) => {
+    if(e?.preventDefault) e.preventDefault();
+    if(!email.trim()) return setError('Email is required.');
+    if(!password)    return setError('Password is required.');
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!re.test(email.trim())) return setError('Enter a valid email address.');
+    setError(''); setLoading(true);
+    try {
+      const data = await api.login(email.trim().toLowerCase(), password);
+      api.setToken(data.token);
+      localStorage.setItem('tf_token', data.token);
+      onLogin(data.user, data.token);
+    } catch(e) {
+      setError(e.message);
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="login-root">
+      <div className="login-glow g1"/><div className="login-glow g2"/>
+      <div className="login-card fade-up">
+        {/* Logo */}
+        <div className="flex gap10 mb24" style={{marginBottom:28}}>
+          <div style={{width:38,height:38,borderRadius:11,background:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+            <Icon name="chart" size={20} color="#07090f"/>
+          </div>
+          <div>
+            <div className="syne" style={{fontSize:20,fontWeight:800,letterSpacing:'-0.03em'}}>TradeFlow</div>
+            <div style={{fontSize:11,color:'var(--text3)',marginTop:-2}}>Stock Trading Platform</div>
+          </div>
+        </div>
+        <div style={{marginBottom:24}}>
+          <div className="syne" style={{fontSize:22,fontWeight:800,marginBottom:4}}>Welcome back</div>
+          <div style={{fontSize:13,color:'var(--text3)'}}>Sign in to access your trading account</div>
+        </div>
+        {error && (
+          <div className="inline-err mb16">
+            <Icon name="alert" size={14}/> {error}
+          </div>
+        )}
+        <div className="login-field">
+          <label className="field-label">Email address</label>
+          <input type="email" placeholder="you@example.com" value={email}
+            onChange={e=>{setEmail(e.target.value);setError('')}}
+            onKeyDown={e=>e.key==='Enter'&&submit()} autoComplete="email"/>
+        </div>
+        <div className="login-field">
+          <label className="field-label">Password</label>
+          <div style={{position:'relative'}}>
+            <input type={showPw?'text':'password'} placeholder="••••••••" value={password}
+              onChange={e=>{setPassword(e.target.value);setError('')}}
+              onKeyDown={e=>e.key==='Enter'&&submit()} autoComplete="current-password"
+              style={{paddingRight:42}}/>
+            <button onClick={()=>setShowPw(p=>!p)} style={{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:'var(--text3)',padding:0,display:'flex',cursor:'pointer'}} tabIndex={-1}>
+              <Icon name="eye" size={15}/>
+            </button>
+          </div>
+        </div>
+        <button onClick={submit} disabled={loading} className="btn btn-primary" style={{width:'100%',padding:'13px',fontSize:15,justifyContent:'center',marginTop:4}}>
+          {loading?<><span className="spinner" style={{borderTopColor:'#07090f'}}/> Signing in…</>:'Sign In'}
+        </button>
+        <div className="login-divider"><span>demo accounts</span></div>
+        <div style={{display:'flex',gap:8}}>
+          <button onClick={()=>{setEmail('demo@tradeflow.in');setPassword('password');setError('')}} className="btn btn-outline flex1" style={{fontSize:12,justifyContent:'center',padding:'9px'}}>
+            <Icon name="user" size={13}/> User
+          </button>
+          <button onClick={()=>{setEmail('admin@tradeflow.in');setPassword('password');setError('')}} className="btn btn-outline flex1" style={{fontSize:12,justifyContent:'center',padding:'9px',color:'var(--amber)',borderColor:'var(--amber-bg)'}}>
+            <Icon name="shield" size={13}/> Admin
+          </button>
+        </div>
+        <div className="login-hint">
+          <code>demo@tradeflow.in</code> or <code>admin@tradeflow.in</code>
+          <br/>Password: <code>password</code>
+          <br/><span style={{color:'var(--text4)',fontSize:11,marginTop:4,display:'block'}}>
+            Ensure the backend is running on <code>localhost:4000</code>
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════
+   DASHBOARD PAGE
+═══════════════════════════════════════════════════════ */
+const Dashboard = () => {
+  const { wallet, portfolio, recentOrders, refreshAll, user } = useApp();
+  const chartRef  = useRef(null);
+  const chartInst = useRef(null);
+  const [histData, setHistData] = useState({});
+
+  // Fetch price history for first 2 holdings on mount
+  useEffect(()=>{
+    if(!portfolio?.length) return;
+    const top2 = portfolio.slice(0,2).map(p=>p.symbol);
+    Promise.all(top2.map(sym=>api.priceHistory(sym,14).then(d=>({sym,data:d.history})))).then(results=>{
+      const map = {};
+      results.forEach(r=>{map[r.sym]=r.data;});
+      setHistData(map);
+    }).catch(()=>{});
+  },[portfolio]);
+
+  // Build chart when history arrives
+  useEffect(()=>{
+    if(!chartRef.current||!Object.keys(histData).length) return;
+    if(chartInst.current) chartInst.current.destroy();
+    const syms = Object.keys(histData);
+    const labels = histData[syms[0]]?.map(d=>d.date)||[];
+    const datasets = syms.map((sym,i)=>{
+      const c = chartColor(sym,i);
+      return {
+        label:sym,data:histData[sym].map(d=>parseFloat(d.price)),
+        borderColor:c.border,backgroundColor:c.bg,
+        tension:0.4,fill:true,pointRadius:0,borderWidth:2,
+      };
+    });
+    chartInst.current = new Chart(chartRef.current.getContext('2d'),{
+      type:'line',data:{labels,datasets},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        interaction:{mode:'index',intersect:false},
+        plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2236',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,titleColor:'#edf2ff',bodyColor:'#8899b8',padding:10,callbacks:{label:c=>`${c.dataset.label}: ₹${parseFloat(c.raw).toFixed(2)}`}}},
+        scales:{
+          x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#4a5a78',font:{size:10}}},
+          y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#4a5a78',font:{size:10},callback:v=>'₹'+parseFloat(v).toFixed(0)}},
+        },
+      },
+    });
+    return ()=>{if(chartInst.current)chartInst.current.destroy();};
+  },[histData]);
+
+  const totalInvested = portfolio?.reduce((s,p)=>s+parseFloat(p.invested_value),0)||0;
+  const currentVal    = portfolio?.reduce((s,p)=>s+parseFloat(p.current_value),0)||0;
+  const totalPnl      = currentVal-totalInvested;
+  const bal           = parseFloat(wallet?.balance||0);
+  const pnlPct        = totalInvested>0?parseFloat(pct(currentVal,totalInvested)):0;
+
+  return (
+    <div className="fade-up">
+      <div className="page-header flex-between">
+        <div>
+          <div className="page-title">Dashboard</div>
+          <div className="page-sub">Welcome back, {user?.name} • Portfolio overview</div>
+        </div>
+        <button className="btn btn-sm btn-outline flex gap6" onClick={refreshAll}>
+          <Icon name="refresh" size={13}/> Refresh
+        </button>
+      </div>
+
+      <div className="grid4 mb24">
+        {[
+          {label:'Portfolio Value', val:currentVal, color:'c-green', sub:`${pnlPct>=0?'+':''}${pnlPct}% total return`, subColor:pnlPct>=0?'var(--green)':'var(--red)'},
+          {label:'Wallet Balance',  val:bal,         color:'c-blue',  sub:'Available to invest',     subColor:'var(--text3)'},
+          {label:'Unrealized P&L',  val:totalPnl,    color:totalPnl>=0?'c-green':'c-red', sub:`${portfolio?.length||0} positions`, subColor:'var(--text3)', signed:true},
+          {label:'Total Invested',  val:totalInvested,color:'c-amber', sub:'Cost basis',             subColor:'var(--text3)'},
+        ].map((s,i)=>(
+          <div key={i} className={`stat-card ${s.color}`} style={{'--delay':`${i*60}ms`}}>
+            <div className="stat-label">{s.label}</div>
+            <div className="stat-val" style={{color:s.signed&&s.val<0?'var(--red)':s.signed&&s.val>=0?'var(--green)':undefined}}>
+              <AnimNum value={s.val} prefix="₹"/>
+            </div>
+            <div className="stat-sub" style={{color:s.subColor}}>{s.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid2 mb24">
+        <div className="card">
+          <div className="sec-head">
+            <div className="sec-title"><Icon name="chart" size={14}/>Performance (14d)</div>
+            <div className="flex gap8" style={{fontSize:11}}>
+              {Object.keys(histData).map((sym,i)=>{
+                const c=chartColor(sym,i);
+                return <span key={sym} className="flex gap4"><span style={{width:10,height:10,borderRadius:2,background:c.border,display:'inline-block'}}/>{sym}</span>;
+              })}
+            </div>
+          </div>
+          <div className="chart-wrap chart-h220">
+            <canvas ref={chartRef}/>
+          </div>
+          {!Object.keys(histData).length && (
+            <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:220,color:'var(--text3)',gap:8}}>
+              {portfolio?.length ? <><span className="spinner spinner-sm"/>Loading chart…</> : 'No holdings yet'}
+            </div>
+          )}
+        </div>
+        <div className="card">
+          <div className="sec-head">
+            <div className="sec-title"><Icon name="portfolio" size={14}/>Top Holdings</div>
+          </div>
+          {!portfolio ? <SkeletonTable rows={4} cols={3}/> :
+           !portfolio.length ? <div style={{color:'var(--text3)',textAlign:'center',padding:'32px 0',fontSize:13}}>No holdings yet. Place a BUY order to get started.</div> :
+          <div>
+            {portfolio.slice(0,6).map((h,i)=>{
+              const pnl = parseFloat(h.unrealized_pnl);
+              const p   = parseFloat(h.pnl_pct);
+              return (
+                <div key={h.symbol} className="flex-between" style={{padding:'9px 0',borderBottom:'1px solid var(--border)',animationDelay:`${i*40}ms`}}>
+                  <div className="flex gap10">
+                    <div style={{width:34,height:34,borderRadius:8,background:'var(--surface2)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'DM Mono',fontSize:10,fontWeight:700,color:'var(--accent)',border:'1px solid var(--border)',flexShrink:0}}>
+                      {h.symbol.slice(0,3)}
+                    </div>
+                    <div>
+                      <div style={{fontWeight:700,fontSize:13}}>{h.symbol}</div>
+                      <div style={{fontSize:11,color:'var(--text3)'}}>{h.qty} shares</div>
+                    </div>
+                  </div>
+                  <div style={{textAlign:'right'}}>
+                    <div style={{fontFamily:'DM Mono',fontWeight:600,fontSize:13}}>{curr(h.current_value)}</div>
+                    <div style={{fontSize:11,color:pnl>=0?'var(--green)':'var(--red)',fontFamily:'DM Mono'}}>{pnl>=0?'+':''}{curr(pnl)} ({p>=0?'+':''}{parseFloat(p).toFixed(2)}%)</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          }
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="sec-head">
+          <div className="sec-title"><Icon name="history" size={14}/>Recent Orders</div>
+        </div>
+        {!recentOrders ? <SkeletonTable rows={4} cols={7}/> : (
+          <div className="ovx">
+            <table>
+              <thead><tr><th>Order ID</th><th>Stock</th><th>Type</th><th>Qty</th><th>Price</th><th>Total</th><th>Status</th><th>Time</th></tr></thead>
+              <tbody>
+                {recentOrders.slice(0,6).map(o=>(
+                  <tr key={o.id}>
+                    <td className="mono" style={{fontSize:11,color:'var(--text3)'}}>{o.id.slice(0,8)}…</td>
+                    <td style={{fontWeight:700}}>{o.symbol}</td>
+                    <td><span className={`badge badge-${o.order_type==='BUY'?'green':'red'}`}>{o.order_type}</span></td>
+                    <td className="mono">{o.qty}</td>
+                    <td className="mono">{curr(o.price)}</td>
+                    <td className="mono" style={{fontWeight:600}}>{curr(o.total)}</td>
+                    <td><span className={`badge badge-${o.status==='EXECUTED'?'green':o.status==='OPEN'?'blue':'amber'}`}>{o.status}</span></td>
+                    <td style={{fontSize:11,color:'var(--text3)'}}>{new Date(o.created_at).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {!recentOrders.length && <div style={{textAlign:'center',padding:'24px',color:'var(--text3)'}}>No orders yet.</div>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════
+   STOCKS / MARKETS PAGE
+═══════════════════════════════════════════════════════ */
+const StocksPage = () => {
+  const { stocks, setPage, setPreselect } = useApp();
+  const [search,        setSearch]        = useState('');
+  const [sortBy,        setSortBy]        = useState('symbol');
+  const [selectedSyms,  setSelectedSyms]  = useState(['AAPL','TSLA']);
+  const [chartMode,     setChartMode]     = useState('compare');
+  const [focusSym,      setFocusSym]      = useState('AAPL');
+  const [histCache,     setHistCache]     = useState({});
+  const [loadingHist,   setLoadingHist]   = useState(false);
+  const chartRef = useRef(null);
+  const chartInst = useRef(null);
+
+  // Fetch history for needed symbols
+  const fetchHist = useCallback(async (syms) => {
+    const missing = syms.filter(s=>!histCache[s]);
+    if(!missing.length) return;
+    setLoadingHist(true);
+    try {
+      const results = await Promise.all(missing.map(s=>api.priceHistory(s).then(d=>({s,data:d.history}))));
+      setHistCache(prev=>{ const n={...prev}; results.forEach(r=>{n[r.s]=r.data;}); return n; });
+    } catch(e){} finally { setLoadingHist(false); }
+  },[histCache]);
+
+  useEffect(()=>{
+    const syms = chartMode==='compare' ? selectedSyms : [focusSym];
+    fetchHist(syms);
+  },[selectedSyms,focusSym,chartMode]);
+
+  // Rebuild chart
+  useEffect(()=>{
+    if(!chartRef.current) return;
+    const syms = chartMode==='compare' ? selectedSyms : [focusSym];
+    const ready = syms.every(s=>histCache[s]);
+    if(!ready) return;
+    if(chartInst.current) chartInst.current.destroy();
+    const labels = histCache[syms[0]]?.map(d=>d.date)||[];
+    const datasets = syms.map((sym,i)=>{
+      const hist = histCache[sym]||[];
+      const c = chartColor(sym,i);
+      const isPos = hist.length>1 && parseFloat(hist[hist.length-1].price)>=parseFloat(hist[0].price);
+      return {
+        label:sym,
+        data:hist.map(d=>parseFloat(d.price)),
+        borderColor: chartMode==='single'?(isPos?c.border:'var(--red)'):c.border,
+        backgroundColor: chartMode==='single'?(isPos?c.bg:'rgba(255,77,106,0.07)'):c.bg,
+        tension:0.4,fill:syms.length===1,pointRadius:0,borderWidth:2,pointHoverRadius:4,
+      };
+    });
+    chartInst.current = new Chart(chartRef.current.getContext('2d'),{
+      type:'line',data:{labels,datasets},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        interaction:{mode:'index',intersect:false},
+        plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2236',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,titleColor:'#edf2ff',bodyColor:'#8899b8',padding:10,callbacks:{label:c=>`${c.dataset.label}: ₹${parseFloat(c.raw).toFixed(2)}`}}},
+        scales:{
+          x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#4a5a78',font:{size:10},maxTicksLimit:8}},
+          y:{position:'right',grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#4a5a78',font:{size:10},callback:v=>'₹'+parseFloat(v).toFixed(0)}},
+        },
+      },
+    });
+    return ()=>{if(chartInst.current)chartInst.current.destroy();};
+  },[histCache,selectedSyms,focusSym,chartMode]);
+
+  const toggleSym = sym => {
+    setSelectedSyms(prev=>{
+      if(prev.includes(sym)){ return prev.length===1?prev:prev.filter(s=>s!==sym); }
+      if(prev.length>=6) return prev;
+      return [...prev,sym];
+    });
+  };
+
+  const filtered = (stocks||[])
+    .filter(s=>s.symbol.toLowerCase().includes(search.toLowerCase())||s.name.toLowerCase().includes(search.toLowerCase())||s.sector.toLowerCase().includes(search.toLowerCase()))
+    .sort((a,b)=>sortBy==='price'?parseFloat(b.price)-parseFloat(a.price):sortBy==='change'?parseFloat(pct(b.price,b.prev_price))-parseFloat(pct(a.price,a.prev_price)):a.symbol.localeCompare(b.symbol));
+
+  const focusS = (stocks||[]).find(s=>s.symbol===focusSym);
+  const focusCh = focusS ? parseFloat(pct(focusS.price,focusS.prev_price)) : 0;
+
+  return (
+    <div className="fade-up">
+      <div className="page-header">
+        <div className="page-title">Markets</div>
+        <div className="page-sub">Live prices · Multi-stock comparison · 30-day history</div>
+      </div>
+
+      {/* Chart card */}
+      <div className="card mb16">
+        {/* Mode toggle */}
+        <div className="flex-between mb12 wrap gap8">
+          <div className="flex gap6">
+            <button onClick={()=>setChartMode('compare')} className={clsx('btn btn-sm',chartMode==='compare'?'btn-primary':'btn-outline')}>
+              <Icon name="chart" size={13}/> Compare
+            </button>
+            <button onClick={()=>setChartMode('single')} className={clsx('btn btn-sm',chartMode==='single'?'btn-primary':'btn-outline')}>
+              <Icon name="trending_up" size={13}/> Single
+            </button>
+          </div>
+          {chartMode==='single' && focusS && (
+            <div className="flex gap10 wrap">
+              <span className="syne" style={{fontSize:16,fontWeight:700}}>{focusSym}</span>
+              <span style={{fontFamily:'DM Mono',fontSize:20,fontWeight:700}}>{curr(focusS.price)}</span>
+              <span className={`badge badge-${focusCh>=0?'green':'red'}`}>{focusCh>=0?'+':''}{focusCh}%</span>
+            </div>
+          )}
+        </div>
+
+        {/* Compare chips */}
+        {chartMode==='compare' && (
+          <div className="flex gap6 mb12 wrap">
+            {(stocks||[]).map((s,i)=>{
+              const on = selectedSyms.includes(s.symbol);
+              const c  = chartColor(s.symbol,i);
+              const ch = parseFloat(pct(s.price,s.prev_price));
+              return (
+                <button key={s.symbol} onClick={()=>toggleSym(s.symbol)}
+                  className={clsx('stock-chip',on&&'on')}
+                  style={on?{background:c.border,borderColor:c.border}:{borderColor:c.border}}>
+                  <span className="dot" style={{background:on?'#07090f':c.border}}/>
+                  {s.symbol}
+                  <span style={{fontSize:10,opacity:0.8}}>{ch>=0?'+':''}{ch}%</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {/* Single-mode selector */}
+        {chartMode==='single' && (
+          <div className="flex gap6 mb12 wrap">
+            {(stocks||[]).map(s=>(
+              <button key={s.symbol} onClick={()=>setFocusSym(s.symbol)}
+                className={clsx('btn btn-sm',focusSym===s.symbol?'btn-primary':'btn-outline')}>
+                {s.symbol}
+              </button>
+            ))}
+          </div>
+        )}
+        {/* Legend (compare) */}
+        {chartMode==='compare' && (
+          <div className="flex gap12 mb8 wrap" style={{fontSize:11}}>
+            {selectedSyms.map((sym,i)=>{
+              const c=chartColor(sym,i);
+              return <span key={sym} className="flex gap4"><span style={{width:10,height:10,borderRadius:2,background:c.border,display:'inline-block'}}/><span style={{color:'var(--text2)'}}>{sym}</span></span>;
+            })}
+          </div>
+        )}
+        <div className="chart-wrap chart-h220" style={{position:'relative'}}>
+          <canvas ref={chartRef}/>
+          {loadingHist && <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(26,34,54,0.7)',borderRadius:'var(--r)',gap:8,color:'var(--text2)'}}><span className="spinner"/>Loading chart…</div>}
+        </div>
+        {chartMode==='compare' && <div style={{marginTop:8,fontSize:11,color:'var(--text3)',display:'flex',gap:5,alignItems:'center'}}><Icon name="info" size:11/>Select up to 6 stocks • Click a row below to focus</div>}
+      </div>
+
+      {/* Table card */}
+      <div className="card">
+        <div className="sec-head">
+          <div className="sec-title"><Icon name="filter" size={14}/>All Stocks ({(stocks||[]).length})</div>
+          <div className="flex gap8 wrap">
+            <div style={{position:'relative',maxWidth:240}}>
+              <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:'var(--text3)',pointerEvents:'none'}}><Icon name="search" size={13}/></span>
+              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search…" style={{height:34,fontSize:13,paddingLeft:32}}/>
+            </div>
+            <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{height:34,fontSize:13,width:'auto',paddingRight:24,paddingLeft:10}}>
+              <option value="symbol">A–Z</option>
+              <option value="price">By Price</option>
+              <option value="change">By Change</option>
+            </select>
+          </div>
+        </div>
+        {!stocks ? <SkeletonTable rows={8} cols={8}/> : (
+          <div className="ovx">
+            <table>
+              <thead>
+                <tr>
+                  <th style={{width:36}}>Cmp</th><th>Symbol</th><th>Company</th><th>Sector</th>
+                  <th style={{textAlign:'right'}}>Price</th><th style={{textAlign:'right'}}>Change</th>
+                  <th>Trend</th><th>Cap</th><th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((s,i)=>{
+                  const ch   = parseFloat(pct(s.price,s.prev_price));
+                  const hist = histCache[s.symbol]||[];
+                  const on   = selectedSyms.includes(s.symbol);
+                  const c    = chartColor(s.symbol,i);
+                  return (
+                    <tr key={s.id} style={{cursor:'pointer',animationDelay:`${i*20}ms`}}
+                        onClick={()=>{setFocusSym(s.symbol);setChartMode('single');}}>
+                      <td onClick={e=>{e.stopPropagation();toggleSym(s.symbol);}}>
+                        <div style={{width:20,height:20,borderRadius:5,border:`2px solid ${c.border}`,background:on?c.border:'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'all 0.15s',flexShrink:0}}>
+                          {on&&<Icon name="check" size={10} color="#07090f"/>}
+                        </div>
+                      </td>
+                      <td style={{fontFamily:'DM Mono',fontWeight:700,color:on?c.border:undefined}}>{s.symbol}</td>
+                      <td style={{color:'var(--text2)',maxWidth:150,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.name}</td>
+                      <td><span className="badge badge-blue" style={{fontSize:10}}>{s.sector}</span></td>
+                      <td style={{textAlign:'right',fontFamily:'DM Mono',fontWeight:600}}>{curr(s.price)}</td>
+                      <td style={{textAlign:'right'}}>
+                        <span style={{fontFamily:'DM Mono',fontWeight:700,fontSize:12,color:ch>=0?'var(--green)':'var(--red)'}}>{ch>=0?'+':''}{ch}%</span>
+                      </td>
+                      <td><Sparkline data={hist.slice(-12)} positive={ch>=0} h={30} w={80}/></td>
+                      <td style={{fontFamily:'DM Mono',fontSize:11,color:'var(--text3)'}}>{s.market_cap}</td>
+                      <td onClick={e=>e.stopPropagation()}>
+                        <button className="btn btn-sm btn-primary" onClick={()=>{setPreselect({symbol:s.symbol,stockId:s.id,price:s.price});setPage('order');}}>Trade</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════
+   ORDER PAGE — real API, no optimistic updates
+═══════════════════════════════════════════════════════ */
+const OrderPage = () => {
+  const { stocks, wallet, portfolio, refreshAll, addNotif, preselect, clearPreselect } = useApp();
+  const [orderType, setOrderType] = useState('BUY');
+  const [stockId,   setStockId]   = useState(preselect?.stockId || '');
+  const [priceType, setPriceType] = useState('MARKET');
+  const [qty,       setQty]       = useState('');
+  const [limitPx,   setLimitPx]   = useState('');
+  const [loading,   setLoading]   = useState(false);
+  const [apiErr,    setApiErr]    = useState('');
+  const [success,   setSuccess]   = useState(null);
+
+  // Apply preselect from Markets page
+  useEffect(()=>{
+    if(preselect){ setStockId(String(preselect.stockId)); clearPreselect(); }
+  },[preselect]);
+
+  const stock      = (stocks||[]).find(s=>String(s.id)===String(stockId));
+  const execPrice  = priceType==='MARKET' ? parseFloat(stock?.price||0) : parseFloat(limitPx||0);
+  const qtyNum     = parseInt(qty||0);
+  const total      = qtyNum>0&&execPrice>0 ? qtyNum*execPrice : 0;
+  const holding    = (portfolio||[]).find(p=>String(p.symbol)===String(stock?.symbol));
+  const walletBal  = parseFloat(wallet?.balance||0);
+
+  const handleOrder = async () => {
+    // Client-side guards (server validates too)
+    if(!stockId)    return setApiErr('Select a stock.');
+    if(!qty||qtyNum<=0) return setApiErr('Enter a valid quantity.');
+    if(priceType!=='MARKET'&&(!limitPx||execPrice<=0)) return setApiErr('Enter a valid limit price.');
+    if(orderType==='BUY'&&total>walletBal) return setApiErr(`Insufficient balance. Need ${curr(total)}, have ${curr(walletBal)}.`);
+    if(orderType==='SELL'){
+      if(!holding) return setApiErr(`You hold 0 shares of ${stock?.symbol}. Cannot sell.`);
+      if(qtyNum>parseInt(holding.qty)) return setApiErr(`You hold only ${holding.qty} share(s) of ${stock?.symbol}.`);
+    }
+
+    setApiErr(''); setSuccess(null); setLoading(true);
+    try {
+      const data = await api.placeOrder({ stock_id:parseInt(stockId), order_type:orderType, price_type:priceType, qty:qtyNum, price:execPrice });
+      setSuccess(data.message);
+      setQty(''); setLimitPx('');
+      addNotif({ type:'green', title:`${orderType} Order Executed`, msg:`${qtyNum} × ${stock.symbol} @ ${curr(execPrice)}` });
+      // Always re-fetch real data after trade — no optimistic updates
+      await refreshAll();
+    } catch(e) {
+      setApiErr(e.message);
+      addNotif({ type:'red', title:'Order Failed', msg:e.message });
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="fade-up" style={{maxWidth:900,margin:'0 auto'}}>
+      <div className="page-header">
+        <div className="page-title">Place Order</div>
+        <div className="page-sub">Execute trades with real-time validation and atomic settlement</div>
+      </div>
+      <div className="grid2">
+        {/* Order Form */}
+        <div className="card">
+          {/* BUY / SELL toggle */}
+          <div className="flex gap8 mb20">
+            <button onClick={()=>{setOrderType('BUY');setApiErr('');setSuccess(null);}} className={clsx('order-type-btn buy',orderType==='BUY'&&'active')}>BUY</button>
+            <button onClick={()=>{setOrderType('SELL');setApiErr('');setSuccess(null);}} className={clsx('order-type-btn sell',orderType==='SELL'&&'active')}>SELL</button>
+          </div>
+
+          <div className="flex-col gap16">
+            {/* Stock selector */}
+            <div>
+              <label className="field-label">Stock</label>
+              <select value={stockId} onChange={e=>{setStockId(e.target.value);setApiErr('');setSuccess(null);}}>
+                <option value="">— Select stock —</option>
+                {(stocks||[]).map(s=>(
+                  <option key={s.id} value={s.id}>{s.symbol} — {s.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Order type */}
+            <div>
+              <label className="field-label">Order Type</label>
+              <div className="flex gap6">
+                {['MARKET','LIMIT','SL'].map(t=>(
+                  <button key={t} onClick={()=>setPriceType(t)} className={clsx('btn flex1',priceType===t?'btn-primary':'btn-outline')} style={{justifyContent:'center',padding:'8px 0',fontSize:12}}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Qty */}
+            <div>
+              <label className="field-label">Quantity</label>
+              <input type="number" min="1" value={qty} onChange={e=>{setQty(e.target.value);setApiErr('');setSuccess(null);}} placeholder="0" style={{fontFamily:'DM Mono',fontSize:20,fontWeight:700}}/>
+              {orderType==='SELL'&&holding&&(
+                <div style={{marginTop:5,fontSize:11,color:'var(--text3)'}}>Available: <span style={{color:'var(--amber)',fontWeight:600}}>{holding.qty} shares</span></div>
+              )}
+            </div>
+
+            {/* Limit price */}
+            {priceType!=='MARKET'&&(
+              <div>
+                <label className="field-label">Limit Price (₹)</label>
+                <input type="number" min="0.01" step="0.01" value={limitPx} onChange={e=>setLimitPx(e.target.value)} placeholder={stock?parseFloat(stock.price).toFixed(2):''} style={{fontFamily:'DM Mono',fontSize:18,fontWeight:600}}/>
+              </div>
+            )}
+
+            {/* Status banners */}
+            {apiErr && <div className="inline-err"><Icon name="alert" size={14}/>{apiErr}</div>}
+            {success && <div className="inline-ok"><Icon name="check" size={14}/>{success}</div>}
+
+            {/* Submit */}
+            <button onClick={handleOrder} disabled={loading||!stockId} className={clsx('btn',orderType==='BUY'?'btn-buy':'btn-sell')} style={{width:'100%',justifyContent:'center'}}>
+              {loading?<><span className="spinner" style={{borderTopColor:orderType==='BUY'?'#07090f':'#fff'}}/> Processing…</>:`${orderType} ${stock?.symbol||'—'}`}
+            </button>
+          </div>
+        </div>
+
+        {/* Info panels */}
+        <div className="flex-col gap16">
+          {/* Market info */}
+          <div className="card">
+            <div className="sec-title mb12"><Icon name="info" size={14}/>Market Info</div>
+            {!stock ? (
+              <div style={{color:'var(--text3)',fontSize:13}}>Select a stock to see details.</div>
+            ) : (
+              <div className="flex-col gap1">
+                {[
+                  ['Price',     curr(stock.price)],
+                  ['Prev Close',curr(stock.prev_price)],
+                  ['Change',    `${parseFloat(pct(stock.price,stock.prev_price))>=0?'+':''}${pct(stock.price,stock.prev_price)}%`],
+                  ['Volume',    stock.volume],
+                  ['Market Cap',stock.market_cap],
+                  ['Sector',    stock.sector],
+                ].map(([k,v],i)=>(
+                  <div key={i} className="flex-between" style={{padding:'7px 0',borderBottom:'1px solid var(--border)'}}>
+                    <span style={{color:'var(--text3)',fontSize:12}}>{k}</span>
+                    <span style={{fontFamily:'DM Mono',fontWeight:600,fontSize:13,color:k==='Change'?(parseFloat(pct(stock.price,stock.prev_price))>=0?'var(--green)':'var(--red)'):undefined}}>{v}</span>
+                  </div>
+                ))}
+                {holding&&(
+                  <div className="flex-between" style={{padding:'7px 0'}}>
+                    <span style={{color:'var(--text3)',fontSize:12}}>You Hold</span>
+                    <span style={{fontFamily:'DM Mono',fontWeight:700,color:'var(--amber)'}}>{holding.qty} shares</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Order summary */}
+          <div className="card" style={{background:orderType==='BUY'?'var(--green-bg)':'var(--red-bg)',borderColor:orderType==='BUY'?'rgba(0,212,160,0.3)':'rgba(255,77,106,0.3)'}}>
+            <div className="sec-title mb12"><Icon name="order" size={14}/>Order Summary</div>
+            {[
+              ['Shares',     qtyNum>0?qtyNum:'—'],
+              ['Price/share',execPrice>0?curr(execPrice):'—'],
+            ].map(([k,v],i)=>(
+              <div key={i} className="flex-between mb8">
+                <span style={{color:'var(--text2)',fontSize:13}}>{k}</span>
+                <span style={{fontFamily:'DM Mono',fontWeight:600}}>{v}</span>
+              </div>
+            ))}
+            <div className="flex-between" style={{borderTop:'1px solid var(--border)',paddingTop:10,marginTop:6}}>
+              <span style={{fontWeight:700}}>Total</span>
+              <span style={{fontFamily:'DM Mono',fontWeight:800,fontSize:20,color:orderType==='BUY'?'var(--green)':'var(--red)'}}>{total>0?curr(total):'₹0.00'}</span>
+            </div>
+            {orderType==='BUY'&&total>0&&(
+              <div style={{marginTop:12}}>
+                <div style={{fontSize:11,color:'var(--text3)',marginBottom:4}}>Wallet usage</div>
+                <div className="progress">
+                  <div className="progress-fill" style={{width:`${Math.min(100,(total/walletBal)*100)}%`,background:total>walletBal?'var(--red)':'var(--green)'}}/>
+                </div>
+                <div className="flex-between" style={{marginTop:4,fontSize:10,color:'var(--text3)'}}>
+                  <span>{curr(total)}</span><span>{curr(walletBal)} available</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════
+   PORTFOLIO PAGE
+═══════════════════════════════════════════════════════ */
+const PortfolioPage = () => {
+  const { portfolio, refreshAll } = useApp();
+  const donutRef  = useRef(null);
+  const donutInst = useRef(null);
+  const barRef    = useRef(null);
+  const barInst   = useRef(null);
+
+  const totalInvested = portfolio?.reduce((s,p)=>s+parseFloat(p.invested_value),0)||0;
+  const currentVal    = portfolio?.reduce((s,p)=>s+parseFloat(p.current_value),0)||0;
+  const totalPnl      = currentVal - totalInvested;
+  const ret           = totalInvested>0?parseFloat(pct(currentVal,totalInvested)):0;
+  const colors        = ['#00d4a0','#4d9fff','#ffb830','#a78bfa','#ff4d6a','#38bdf8','#fb923c'];
+
+  // Donut
+  useEffect(()=>{
+    if(!donutRef.current||!portfolio?.length) return;
+    if(donutInst.current) donutInst.current.destroy();
+    donutInst.current = new Chart(donutRef.current.getContext('2d'),{
+      type:'doughnut',
+      data:{labels:portfolio.map(p=>p.symbol),datasets:[{data:portfolio.map(p=>parseFloat(p.current_value)),backgroundColor:colors.slice(0,portfolio.length),borderWidth:0,hoverOffset:10}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'75%',plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2236',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,titleColor:'#edf2ff',bodyColor:'#8899b8',padding:10,callbacks:{label:c=>`₹${fmt(c.raw)} (${((c.raw/currentVal)*100).toFixed(1)}%)`}}}},
+    });
+    return ()=>{if(donutInst.current)donutInst.current.destroy();};
+  },[portfolio]);
+
+  // Bar
+  useEffect(()=>{
+    if(!barRef.current||!portfolio?.length) return;
+    if(barInst.current) barInst.current.destroy();
+    barInst.current = new Chart(barRef.current.getContext('2d'),{
+      type:'bar',
+      data:{
+        labels:portfolio.map(p=>p.symbol),
+        datasets:[
+          {label:'Invested',data:portfolio.map(p=>parseFloat(p.invested_value)),backgroundColor:'rgba(77,159,255,0.6)',borderRadius:4},
+          {label:'Current', data:portfolio.map(p=>parseFloat(p.current_value)), backgroundColor:'rgba(0,212,160,0.6)',borderRadius:4},
+        ],
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2236',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,titleColor:'#edf2ff',bodyColor:'#8899b8',padding:10,callbacks:{label:c=>`${c.dataset.label}: ₹${fmt(c.raw,0)}`}}},scales:{x:{grid:{display:false},ticks:{color:'#4a5a78'}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#4a5a78',callback:v=>'₹'+fmt(v,0)}}}},
+    });
+    return ()=>{if(barInst.current)barInst.current.destroy();};
+  },[portfolio]);
+
+  return (
+    <div className="fade-up">
+      <div className="page-header flex-between">
+        <div>
+          <div className="page-title">Portfolio</div>
+          <div className="page-sub">Holdings, performance, and allocation</div>
+        </div>
+        <button className="btn btn-sm btn-outline flex gap6" onClick={refreshAll}><Icon name="refresh" size={13}/>Refresh</button>
+      </div>
+
+      <div className="grid4 mb24">
+        {[
+          {label:'Invested',    val:totalInvested,color:'c-blue'},
+          {label:'Current Value',val:currentVal,  color:'c-green'},
+          {label:'P&L',         val:totalPnl,     color:totalPnl>=0?'c-green':'c-red',  signed:true},
+          {label:'Return',      val:ret,           color:ret>=0?'c-green':'c-red',       suffix:'%',signed:true},
+        ].map((s,i)=>(
+          <div key={i} className={`stat-card ${s.color}`}>
+            <div className="stat-label">{s.label}</div>
+            <div className="stat-val" style={{color:s.signed&&s.val<0?'var(--red)':s.signed&&s.val>=0?'var(--green)':undefined,fontSize:22}}>
+              {s.suffix?`${s.val>=0?'':'-'}${Math.abs(s.val).toFixed(2)}${s.suffix}`:`${s.signed&&s.val>0?'+':''}${curr(Math.abs(s.val))}`}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {!portfolio ? <SkeletonStats n={2}/> : (
+        <>
+          <div className="grid2 mb24">
+            <div className="card">
+              <div className="sec-title mb12"><Icon name="portfolio" size={14}/>Allocation</div>
+              <div className="flex gap16" style={{alignItems:'center'}}>
+                <div style={{position:'relative',width:160,height:160,flexShrink:0}}>
+                  <canvas ref={donutRef} style={{width:160,height:160}}/>
+                  <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
+                    <div style={{fontSize:11,color:'var(--text3)'}}>Total</div>
+                    <div className="syne" style={{fontSize:15,fontWeight:800}}>{curr(currentVal)}</div>
+                  </div>
+                </div>
+                <div className="flex-col gap6 flex1">
+                  {portfolio.map((p,i)=>{
+                    const w = ((parseFloat(p.current_value)/currentVal)*100).toFixed(1);
+                    return (
+                      <div key={p.symbol} className="flex gap6 align-center" style={{alignItems:'center'}}>
+                        <span style={{width:10,height:10,borderRadius:2,background:colors[i],flexShrink:0,display:'inline-block'}}/>
+                        <span style={{flex:1,fontSize:12,fontWeight:600}}>{p.symbol}</span>
+                        <div className="progress flex1" style={{maxWidth:80}}><div className="progress-fill" style={{width:`${w}%`,background:colors[i]}}/></div>
+                        <span style={{fontSize:11,color:'var(--text3)',width:34,textAlign:'right'}}>{w}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            <div className="card">
+              <div className="flex gap12 mb8" style={{fontSize:11}}>
+                <span className="flex gap4"><span style={{width:10,height:10,borderRadius:2,background:'rgba(77,159,255,0.6)',display:'inline-block'}}/> Invested</span>
+                <span className="flex gap4"><span style={{width:10,height:10,borderRadius:2,background:'rgba(0,212,160,0.6)',display:'inline-block'}}/> Current</span>
+              </div>
+              <div className="chart-wrap" style={{height:200}}><canvas ref={barRef}/></div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="sec-title mb16"><Icon name="portfolio" size={14}/>Holdings Detail</div>
+            <div className="ovx">
+              <table>
+                <thead><tr><th>Stock</th><th>Qty</th><th>Avg Price</th><th>Current</th><th style={{textAlign:'right'}}>Invested</th><th style={{textAlign:'right'}}>Value</th><th style={{textAlign:'right'}}>P&L</th><th style={{textAlign:'right'}}>Return</th><th>Trend</th></tr></thead>
+                <tbody>
+                  {portfolio.map((h,i)=>{
+                    const pnl = parseFloat(h.unrealized_pnl);
+                    const r   = parseFloat(h.pnl_pct);
+                    return (
+                      <tr key={h.symbol}>
+                        <td><div style={{fontFamily:'DM Mono',fontWeight:800,color:colors[i]}}>{h.symbol}</div><div style={{fontSize:11,color:'var(--text3)'}}>{h.name}</div></td>
+                        <td className="mono">{h.qty}</td>
+                        <td className="mono">{curr(h.avg_price)}</td>
+                        <td className="mono">{curr(h.current_price)}</td>
+                        <td style={{textAlign:'right',fontFamily:'DM Mono'}}>{curr(h.invested_value)}</td>
+                        <td style={{textAlign:'right',fontFamily:'DM Mono'}}>{curr(h.current_value)}</td>
+                        <td style={{textAlign:'right'}}><span style={{fontFamily:'DM Mono',fontWeight:700,color:pnl>=0?'var(--green)':'var(--red)'}}>{pnl>=0?'+':''}{curr(pnl)}</span></td>
+                        <td style={{textAlign:'right'}}><span className={`badge badge-${r>=0?'green':'red'}`}>{r>=0?'+':''}{r.toFixed(2)}%</span></td>
+                        <td><Sparkline data={[{price:h.avg_price},{price:h.current_price}]} positive={pnl>=0} h={28} w={60}/></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════
+   WALLET PAGE
+═══════════════════════════════════════════════════════ */
+const WalletPage = () => {
+  const { wallet, refreshAll, addNotif } = useApp();
+  const [amount,    setAmount]    = useState('');
+  const [mode,      setMode]      = useState('');
+  const [loading,   setLoading]   = useState(false);
+  const [apiErr,    setApiErr]    = useState('');
+  const [txLoading, setTxLoading] = useState(true);
+  const [txns,      setTxns]      = useState(null);
+  const chartRef = useRef(null);
+  const chartInst = useRef(null);
+
+  const loadTxns = useCallback(async()=>{
+    setTxLoading(true);
+    try { const d=await api.transactions(); setTxns(d.transactions); } catch(e){} finally{setTxLoading(false);}
+  },[]);
+  useEffect(()=>{ loadTxns(); },[]);
+
+  // Balance history chart
+  useEffect(()=>{
+    if(!chartRef.current||!txns?.length) return;
+    if(chartInst.current) chartInst.current.destroy();
+    const pts = [...txns].reverse();
+    chartInst.current = new Chart(chartRef.current.getContext('2d'),{
+      type:'line',
+      data:{labels:pts.map(t=>new Date(t.created_at).toLocaleDateString('en-IN',{month:'short',day:'numeric'})),datasets:[{label:'Balance',data:pts.map(t=>parseFloat(t.balance_after)),borderColor:'#4d9fff',backgroundColor:'rgba(77,159,255,0.07)',tension:0.4,fill:true,pointRadius:3,borderWidth:2,pointBackgroundColor:'#4d9fff'}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2236',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,titleColor:'#edf2ff',bodyColor:'#8899b8',padding:10,callbacks:{label:c=>'₹'+fmt(c.raw,0)}}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#4a5a78',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#4a5a78',font:{size:10},callback:v=>'₹'+fmt(v,0)}}}},
+    });
+    return ()=>{if(chartInst.current)chartInst.current.destroy();};
+  },[txns]);
+
+  const doTxn = async type => {
+    const amt = parseFloat(amount);
+    if(!amount||isNaN(amt)||amt<=0) return setApiErr('Enter a valid amount.');
+    setApiErr(''); setLoading(true);
+    try {
+      const fn = type==='deposit' ? ()=>api.deposit(amt) : ()=>api.withdraw(amt);
+      const d  = await fn();
+      addNotif({ type:'green', title:type==='deposit'?'Deposit Successful':'Withdrawal Successful', msg:d.message });
+      setAmount(''); setMode('');
+      await Promise.all([refreshAll(), loadTxns()]);
+    } catch(e) {
+      setApiErr(e.message);
+    } finally { setLoading(false); }
+  };
+
+  const bal = parseFloat(wallet?.balance||0);
+
+  return (
+    <div className="fade-up">
+      <div className="page-header">
+        <div className="page-title">Wallet</div>
+        <div className="page-sub">Manage funds and track transactions</div>
+      </div>
+      <div className="grid2 mb24">
+        {/* Balance card */}
+        <div className="card" style={{background:'linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%)',borderColor:'rgba(77,159,255,0.2)',position:'relative',overflow:'hidden'}}>
+          <div style={{position:'absolute',right:-24,top:-24,width:120,height:120,borderRadius:'50%',background:'var(--blue-bg)',opacity:0.4}}/>
+          <div style={{position:'relative'}}>
+            <div style={{fontSize:11,color:'var(--text3)',fontWeight:700,letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:8}}>Available Balance</div>
+            <div className="syne" style={{fontSize:38,fontWeight:800,marginBottom:14,fontFamily:'DM Mono',color:'var(--accent)'}}>{curr(bal)}</div>
+            <div className="flex gap8">
+              <button className="btn btn-primary flex gap6" style={{padding:'9px 18px'}} onClick={()=>setMode(mode==='deposit'?'':'deposit')}>
+                <Icon name="down" size={14}/> Add Money
+              </button>
+              <button className="btn btn-outline flex gap6" style={{padding:'9px 18px'}} onClick={()=>setMode(mode==='withdraw'?'':'withdraw')}>
+                <Icon name="up" size={14}/> Withdraw
+              </button>
+            </div>
+          </div>
+        </div>
+        {mode ? (
+          <div className="card fade-in">
+            <div style={{fontWeight:700,fontSize:15,marginBottom:14,textTransform:'capitalize'}}>{mode==='deposit'?'Add Money':'Withdraw Funds'}</div>
+            <div className="flex gap6 mb10 wrap">
+              {[5000,10000,25000,50000].map(v=>(
+                <button key={v} onClick={()=>setAmount(String(v))} className={clsx('btn btn-sm flex1',String(v)===amount?'btn-primary':'btn-outline')} style={{justifyContent:'center'}}>
+                  ₹{fmt(v,0)}
+                </button>
+              ))}
+            </div>
+            <input type="number" value={amount} onChange={e=>{setAmount(e.target.value);setApiErr('');}} placeholder="Enter amount" style={{fontFamily:'DM Mono',fontSize:20,fontWeight:700,marginBottom:12}}/>
+            {apiErr && <div className="inline-err mb12"><Icon name="alert" size={13}/>{apiErr}</div>}
+            <button onClick={()=>doTxn(mode)} disabled={loading} className={clsx('btn',mode==='deposit'?'btn-buy':'btn-sell')} style={{width:'100%',justifyContent:'center'}}>
+              {loading?<><span className="spinner" style={{borderTopColor:mode==='deposit'?'#07090f':'#fff'}}/> Processing…</>:`Confirm ${mode}`}
+            </button>
+          </div>
+        ) : (
+          <div className="card">
+            <div className="sec-title mb8"><Icon name="chart" size={14}/>Balance History</div>
+            <div className="chart-wrap" style={{height:170}}><canvas ref={chartRef}/></div>
+            {txLoading&&<div style={{display:'flex',alignItems:'center',justifyContent:'center',height:170,color:'var(--text3)',gap:8}}><span className="spinner spinner-sm"/>Loading…</div>}
+          </div>
+        )}
+      </div>
+
+      <div className="card">
+        <div className="sec-head">
+          <div className="sec-title"><Icon name="history" size={14}/>Transaction History</div>
+          <button className="btn btn-sm btn-ghost" onClick={loadTxns}><Icon name="refresh" size={13}/></button>
+        </div>
+        {txLoading ? <SkeletonTable rows={6} cols={5}/> : (
+          <div className="ovx">
+            <table>
+              <thead><tr><th>ID</th><th>Type</th><th>Description</th><th style={{textAlign:'right'}}>Amount</th><th style={{textAlign:'right'}}>Balance After</th><th>Time</th></tr></thead>
+              <tbody>
+                {(txns||[]).map(t=>(
+                  <tr key={t.id}>
+                    <td className="mono" style={{fontSize:10,color:'var(--text3)'}}>{t.id.slice(0,8)}…</td>
+                    <td><span className={`badge badge-${t.type==='DEPOSIT'||t.type==='CREDIT'?'green':'red'}`}>{t.type}</span></td>
+                    <td style={{color:'var(--text2)'}}>{t.description}</td>
+                    <td style={{textAlign:'right',fontFamily:'DM Mono',fontWeight:700,color:parseFloat(t.amount)>0?'var(--green)':'var(--red)'}}>
+                      {parseFloat(t.amount)>0?'+':''}{curr(Math.abs(t.amount))}
+                    </td>
+                    <td style={{textAlign:'right',fontFamily:'DM Mono'}}>{curr(t.balance_after)}</td>
+                    <td style={{color:'var(--text3)',fontSize:11}}>{new Date(t.created_at).toLocaleString()}</td>
+                  </tr>
+                ))}
+                {!txns?.length&&<tr><td colSpan={6} style={{textAlign:'center',padding:'24px',color:'var(--text3)'}}>No transactions yet.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════
+   ORDERS & TRADES HISTORY PAGE
+═══════════════════════════════════════════════════════ */
+const HistoryPage = () => {
+  const { addNotif, refreshAll } = useApp();
+  const [tab,    setTab]    = useState('orders');
+  const [filter, setFilter] = useState('ALL');
+  const [cancelId, setCancelId] = useState(null);
+
+  const { data:ordersData, loading:oLoad, refetch:refetchOrders } = useData(
+    ()=>api.orders(filter==='ALL'?null:filter), [filter]
+  );
+  const { data:tradesData, loading:tLoad } = useData(()=>api.trades(), []);
+
+  const orders = ordersData?.orders||[];
+  const trades = tradesData?.trades||[];
+
+  const handleCancel = async id => {
+    setCancelId(id);
+    try {
+      await api.cancelOrder(id);
+      addNotif({type:'blue',title:'Order Cancelled',msg:'Open order cancelled successfully.'});
+      refetchOrders(); refreshAll();
+    } catch(e) {
+      addNotif({type:'red',title:'Cancel Failed',msg:e.message});
+    } finally { setCancelId(null); }
+  };
+
+  const stats = { total:orders.length, executed:orders.filter(o=>o.status==='EXECUTED').length, open:orders.filter(o=>o.status==='OPEN').length, cancelled:orders.filter(o=>o.status==='CANCELLED').length };
+
+  return (
+    <div className="fade-up">
+      <div className="page-header">
+        <div className="page-title">Orders & Trades</div>
+        <div className="page-sub">Order book, execution history, and trade records</div>
+      </div>
+      <div className="grid4 mb24">
+        {[['Total Orders',stats.total,'c-blue'],['Executed',stats.executed,'c-green'],['Open',stats.open,'c-amber'],['Cancelled',stats.cancelled,'c-purple']].map(([l,v,c])=>(
+          <div key={l} className={`stat-card ${c}`}><div className="stat-label">{l}</div><div className="stat-val" style={{fontSize:28}}>{v}</div></div>
+        ))}
+      </div>
+      <div className="tabs">
+        <div className={clsx('tab',tab==='orders'&&'active')} onClick={()=>setTab('orders')}><Icon name="order" size={13}/>Orders</div>
+        <div className={clsx('tab',tab==='trades'&&'active')} onClick={()=>setTab('trades')}><Icon name="history" size={13}/>Trades</div>
+      </div>
+      {tab==='orders'&&(
+        <div className="card fade-in">
+          <div className="sec-head">
+            <div className="sec-title"><Icon name="order" size={14}/>Order Book</div>
+            <div className="flex gap4 wrap">
+              {['ALL','OPEN','EXECUTED','CANCELLED','FAILED'].map(f=>(
+                <button key={f} onClick={()=>setFilter(f)} className={clsx('btn btn-sm',filter===f?'btn-primary':'btn-outline')}>{f}</button>
+              ))}
+            </div>
+          </div>
+          {oLoad ? <SkeletonTable rows={5} cols={8}/> : (
+            <div className="ovx">
+              <table>
+                <thead><tr><th>Order ID</th><th>Symbol</th><th>Type</th><th>Mode</th><th>Qty</th><th>Price</th><th>Total</th><th>Status</th><th>Time</th><th>Action</th></tr></thead>
+                <tbody>
+                  {orders.map(o=>(
+                    <tr key={o.id}>
+                      <td className="mono" style={{fontSize:10,color:'var(--text3)'}}>{o.id.slice(0,8)}…</td>
+                      <td style={{fontWeight:700}}>{o.symbol}</td>
+                      <td><span className={`badge badge-${o.order_type==='BUY'?'green':'red'}`}>{o.order_type}</span></td>
+                      <td><span className="badge badge-blue" style={{fontSize:9}}>{o.price_type}</span></td>
+                      <td className="mono">{o.qty}</td>
+                      <td className="mono">{curr(o.price)}</td>
+                      <td className="mono" style={{fontWeight:600}}>{curr(o.total)}</td>
+                      <td><span className={`badge badge-${o.status==='EXECUTED'?'green':o.status==='OPEN'?'blue':o.status==='FAILED'?'red':'amber'}`}>{o.status}</span></td>
+                      <td style={{fontSize:11,color:'var(--text3)'}}>{new Date(o.created_at).toLocaleString()}</td>
+                      <td>
+                        {o.status==='OPEN'&&(
+                          <button className="btn btn-sm btn-outline" style={{color:'var(--red)',borderColor:'var(--red)',fontSize:11}}
+                            onClick={()=>handleCancel(o.id)} disabled={cancelId===o.id}>
+                            {cancelId===o.id?<span className="spinner spinner-sm"/>:'Cancel'}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {!orders.length&&<tr><td colSpan={10} style={{textAlign:'center',padding:'24px',color:'var(--text3)'}}>No orders found.</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+      {tab==='trades'&&(
+        <div className="card fade-in">
+          <div className="sec-title mb16"><Icon name="history" size={14}/>Executed Trades</div>
+          {tLoad ? <SkeletonTable rows={5} cols={8}/> : (
+            <div className="ovx">
+              <table>
+                <thead><tr><th>Trade ID</th><th>Symbol</th><th>Type</th><th>Qty</th><th>Price</th><th>Total</th><th>P&L</th><th>Time</th></tr></thead>
+                <tbody>
+                  {trades.map(t=>{
+                    const pnl=parseFloat(t.pnl);
+                    return (
+                      <tr key={t.id}>
+                        <td className="mono" style={{fontSize:10,color:'var(--accent)'}}>{t.id.slice(0,8)}…</td>
+                        <td style={{fontWeight:700}}>{t.symbol}</td>
+                        <td><span className={`badge badge-${t.trade_type==='BUY'?'green':'red'}`}>{t.trade_type}</span></td>
+                        <td className="mono">{t.qty}</td>
+                        <td className="mono">{curr(t.price)}</td>
+                        <td className="mono" style={{fontWeight:600}}>{curr(t.total)}</td>
+                        <td style={{fontFamily:'DM Mono',fontWeight:700,color:pnl>=0?'var(--green)':'var(--red)'}}>{t.trade_type==='SELL'?(pnl>=0?'+':'')+curr(pnl):'—'}</td>
+                        <td style={{fontSize:11,color:'var(--text3)'}}>{new Date(t.executed_at).toLocaleString()}</td>
+                      </tr>
+                    );
+                  })}
+                  {!trades.length&&<tr><td colSpan={8} style={{textAlign:'center',padding:'24px',color:'var(--text3)'}}>No trades yet.</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════
+   LOGS PAGE — ADMIN ONLY
+═══════════════════════════════════════════════════════ */
+const LogsPage = () => {
+  const { user } = useApp();
+  if(user?.role!=='ADMIN') return (
+    <div className="access-denied fade-up">
+      <Icon name="lock" size={48} color="var(--red)"/>
+      <div className="syne" style={{fontSize:20,fontWeight:700}}>Access Denied</div>
+      <div style={{color:'var(--text3)'}}>This area requires ADMIN role.</div>
+    </div>
+  );
+  return <AdminLogsContent/>;
+};
+const AdminLogsContent = () => {
+  const [tab,      setTab]      = useState('logs');
+  const [logLevel, setLogLevel] = useState('ALL');
+  const { data:logsData,  loading:lLoad,  refetch:refetchLogs }  = useData(()=>api.adminLogs(logLevel),  [logLevel]);
+  const { data:dbTxData,  loading:dLoad,  refetch:refetchDbTx }  = useData(()=>api.adminDbTxns(),  []);
+  const { data:locksData, loading:lkLoad, refetch:refetchLocks } = useData(()=>api.adminLocks(),  []);
+  const { data:statsData } = useData(()=>api.adminStats(), []);
+
+  const logs   = logsData?.logs||[];
+  const dbTxns = dbTxData?.transactions||[];
+  const locks  = locksData?.locks||[];
+  const liveLks= locksData?.live_locks||[];
+  const stats  = statsData||{};
+  const levelColor = {INFO:'blue',WARN:'amber',ERROR:'red',DEBUG:'purple'};
+
+  return (
+    <div className="fade-up">
+      <div className="page-header">
+        <div className="page-title">System Logs & DB Inspector</div>
+        <div className="page-sub">Admin visibility — transactions, locks, and system events</div>
+      </div>
+      {stats.total_users!==undefined&&(
+        <div className="grid4 mb24">
+          {[
+            {label:'Total Users',    val:stats.total_users,     color:'c-blue'},
+            {label:'Executed Orders',val:stats.executed_orders, color:'c-green'},
+            {label:'Total Volume',   val:curr(stats.total_volume), color:'c-amber', raw:true},
+            {label:'Error Logs',     val:stats.error_logs,      color:'c-red'},
+          ].map((s,i)=>(
+            <div key={i} className={`stat-card ${s.color}`}><div className="stat-label">{s.label}</div><div className="stat-val" style={{fontSize:22}}>{s.raw?s.val:s.val}</div></div>
+          ))}
+        </div>
+      )}
+      <div className="tabs">
+        <div className={clsx('tab',tab==='logs'&&'active')}   onClick={()=>setTab('logs')}><Icon name="logs" size={13}/>App Logs</div>
+        <div className={clsx('tab',tab==='db'&&'active')}     onClick={()=>setTab('db')}><Icon name="db" size={13}/>DB Transactions</div>
+        <div className={clsx('tab',tab==='locks'&&'active')}  onClick={()=>setTab('locks')}><Icon name="lock" size={13}/>Lock Manager</div>
+      </div>
+
+      {tab==='logs'&&(
+        <div className="card fade-in">
+          <div className="sec-head">
+            <div className="sec-title"><Icon name="logs" size={14}/>Application Logs</div>
+            <div className="flex gap4 wrap">
+              {['ALL','INFO','WARN','ERROR','DEBUG'].map(l=>(
+                <button key={l} onClick={()=>setLogLevel(l)} className={clsx('btn btn-sm',logLevel===l?'btn-primary':'btn-outline')}>{l}</button>
+              ))}
+              <button className="btn btn-sm btn-ghost" onClick={refetchLogs}><Icon name="refresh" size={13}/></button>
+            </div>
+          </div>
+          {lLoad ? <SkeletonTable rows={6} cols={4}/> : (
+            <div style={{fontFamily:'DM Mono',fontSize:12,display:'flex',flexDirection:'column',gap:2}}>
+              {logs.map(l=>(
+                <div key={l.id} style={{display:'flex',gap:10,padding:'8px 10px',borderRadius:'var(--r)',background:'var(--bg3)',borderLeft:`3px solid var(--${levelColor[l.level]||'blue'})`,alignItems:'flex-start',flexWrap:'wrap',gap:8,animation:'fadeIn 0.2s ease'}}>
+                  <span style={{color:'var(--text3)',flexShrink:0,fontSize:10}}>{new Date(l.created_at).toLocaleString()}</span>
+                  <span className={`badge badge-${levelColor[l.level]||'blue'}`} style={{flexShrink:0}}>{l.level}</span>
+                  <span style={{color:'var(--purple)',flexShrink:0}}>[{l.module}]</span>
+                  {l.user_email&&<span style={{color:'var(--text3)',flexShrink:0,fontSize:10}}>{l.user_email}</span>}
+                  <span style={{color:'var(--text2)',wordBreak:'break-all'}}>{l.message}</span>
+                </div>
+              ))}
+              {!logs.length&&<div style={{textAlign:'center',padding:'24px',color:'var(--text3)',fontFamily:'DM Sans'}}>No logs found.</div>}
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab==='db'&&(
+        <div className="fade-in">
+          <div className="card">
+            <div className="sec-head">
+              <div className="sec-title"><Icon name="db" size={14}/>DB Transaction Log</div>
+              <button className="btn btn-sm btn-ghost" onClick={refetchDbTx}><Icon name="refresh" size={13}/></button>
+            </div>
+            {dLoad ? <SkeletonTable rows={5} cols={5}/> : (
+              <div className="ovx">
+                <table>
+                  <thead><tr><th>ID</th><th>Tables</th><th>Operations</th><th>Status</th><th>Duration</th><th>Initiated By</th><th>Time</th></tr></thead>
+                  <tbody>
+                    {dbTxns.map(t=>(
+                      <tr key={t.id}>
+                        <td className="mono" style={{fontSize:10,color:'var(--amber)'}}>{t.id}</td>
+                        <td><div className="flex gap4 wrap">{(t.tables_used||[]).map(tbl=><span key={tbl} className="badge badge-blue" style={{fontSize:9}}>{tbl}</span>)}</div></td>
+                        <td style={{fontFamily:'DM Mono',fontSize:10,color:'var(--text2)',maxWidth:200}}>{t.operations}</td>
+                        <td><span className={`badge badge-${t.status==='COMMITTED'?'green':'red'}`}>{t.status}</span></td>
+                        <td className="mono" style={{fontSize:11}}>{t.duration_ms}ms</td>
+                        <td style={{fontSize:11,color:'var(--text3)'}}>{t.initiated_by_email||'—'}</td>
+                        <td style={{fontSize:10,color:'var(--text3)'}}>{new Date(t.created_at).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                    {!dbTxns.length&&<tr><td colSpan={7} style={{textAlign:'center',padding:'24px',color:'var(--text3)'}}>No DB transactions recorded.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+          {/* Transaction flow visualization */}
+          <div className="card" style={{marginTop:16}}>
+            <div className="sec-title mb12">Transaction Flow</div>
+            <div style={{display:'flex',alignItems:'center',gap:0,overflowX:'auto',padding:'8px 0'}}>
+              {['BEGIN','LOCK ACQUIRE','VALIDATE','EXECUTE SQL','COMMIT / ROLLBACK','LOCK RELEASE','END'].map((s,i,a)=>(
+                <React.Fragment key={s}>
+                  <div style={{background:'var(--surface2)',border:'1px solid var(--border2)',borderRadius:'var(--r)',padding:'8px 12px',whiteSpace:'nowrap',fontSize:11,fontWeight:600,textAlign:'center',minWidth:96,color:i===4?'var(--green)':i===0||i===6?'var(--text3)':'var(--text)'}}>
+                    <div style={{fontSize:9,color:'var(--text3)',marginBottom:2}}>STEP {i+1}</div>{s}
+                  </div>
+                  {i<a.length-1&&<div style={{color:'var(--text3)',fontSize:16,padding:'0 2px',flexShrink:0}}>→</div>}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab==='locks'&&(
+        <div className="fade-in">
+          <div className="card mb16">
+            <div className="sec-head">
+              <div className="sec-title"><Icon name="lock" size={14}/>Lock Manager</div>
+              <div className="flex gap6">
+                <span className="badge badge-green"><span className="live-dot" style={{width:5,height:5}}/>Live</span>
+                <button className="btn btn-sm btn-ghost" onClick={refetchLocks}><Icon name="refresh" size={13}/></button>
+              </div>
+            </div>
+            {lkLoad ? <SkeletonTable rows={4} cols={6}/> : (
+              <div className="ovx">
+                <table>
+                  <thead><tr><th>ID</th><th>Type</th><th>Table</th><th>Resource</th><th>Mode</th><th>Held (ms)</th><th>Status</th></tr></thead>
+                  <tbody>
+                    {locks.map(l=>(
+                      <tr key={l.id}>
+                        <td className="mono" style={{fontSize:10,color:'var(--purple)'}}>{l.id}</td>
+                        <td><span className={`badge badge-${l.lock_type==='ROW'?'blue':'amber'}`}>{l.lock_type}</span></td>
+                        <td style={{fontFamily:'DM Mono',fontWeight:600}}>{l.table_name}</td>
+                        <td style={{fontFamily:'DM Mono',fontSize:11,color:'var(--text3)'}}>{l.resource}</td>
+                        <td><span className={`badge badge-${l.mode==='EXCLUSIVE'?'red':'green'}`}>{l.mode}</span></td>
+                        <td className="mono">{l.held_ms}</td>
+                        <td><span className={`badge badge-${l.status==='ACTIVE'?'amber':'blue'}`}>{l.status}</span></td>
+                      </tr>
+                    ))}
+                    {!locks.length&&<tr><td colSpan={7} style={{textAlign:'center',padding:'16px',color:'var(--text3)'}}>No recorded locks.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+          {/* Live PG locks */}
+          {liveLks.length>0&&(
+            <div className="card mb16">
+              <div className="sec-title mb12"><span className="live-dot" style={{marginRight:6}}/>Live PostgreSQL Locks</div>
+              <div className="ovx">
+                <table>
+                  <thead><tr><th>PID</th><th>Table</th><th>Mode</th><th>Granted</th><th>Blocked By</th></tr></thead>
+                  <tbody>
+                    {liveLks.map((l,i)=>(
+                      <tr key={i}>
+                        <td className="mono">{l.pid}</td>
+                        <td style={{fontFamily:'DM Mono',fontWeight:600}}>{l.table_name}</td>
+                        <td><span className="badge badge-blue" style={{fontSize:9}}>{l.mode}</span></td>
+                        <td><span className={`badge badge-${l.granted?'green':'red'}`}>{l.granted?'Yes':'No'}</span></td>
+                        <td className="mono" style={{fontSize:11}}>{l.blocked_by?.length?l.blocked_by.join(','):'None'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          <div className="grid2">
+            <div className="card">
+              <div className="sec-title mb10">Lock Types</div>
+              <div className="flex-col gap8" style={{fontSize:12}}>
+                {[['ROW SHARE','Multiple readers allowed','green'],['ROW EXCLUSIVE','Single writer, blocks reads','red'],['TABLE SHARE','Blocks table modifications','amber'],['EXCLUSIVE','Full table lock','red']].map(([n,d,c])=>(
+                  <div key={n} className="flex gap8" style={{alignItems:'flex-start'}}>
+                    <span className={`badge badge-${c}`} style={{flexShrink:0}}>{n}</span>
+                    <span style={{color:'var(--text3)',fontSize:11}}>{d}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="card">
+              <div className="sec-title mb10">MVCC Model</div>
+              <div style={{fontSize:12,color:'var(--text2)',lineHeight:1.7}}>
+                <p>Uses <strong style={{color:'var(--text)'}}>Multi-Version Concurrency Control</strong> for high-concurrency read/write isolation.</p>
+                <br/>
+                <p style={{color:'var(--text3)'}}>Each transaction sees a snapshot at start time — eliminating dirty reads without blocking concurrent reads.</p>
+                <br/>
+                <div style={{background:'var(--bg3)',borderRadius:'var(--r)',padding:10,fontFamily:'DM Mono',fontSize:11,color:'var(--green)',lineHeight:1.8}}>
+                  Isolation: READ COMMITTED<br/>Deadlock timeout: 5000ms<br/>Lock wait: 3000ms<br/>Pool size: 20 connections
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════
+   ROOT APP
+═══════════════════════════════════════════════════════ */
+const App = () => {
+  // ── Auth ──────────────────────────────────────────────
+  const [isLoggedIn,  setIsLoggedIn]  = useState(false);
+  const [user,        setUser]        = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  // ── App State ─────────────────────────────────────────
+  const [darkMode,    setDarkMode]    = useState(true);
+  const [page,        setPage]        = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notifications,setNotifications] = useState([]);
+  const [preselect,   setPreselect]   = useState(null);
+
+  // ── Server-synced state ───────────────────────────────
+  const [stocks,      setStocks]      = useState(null);
+  const [wallet,      setWallet]      = useState(null);
+  const [portfolio,   setPortfolio]   = useState(null);
+  const [recentOrders,setRecentOrders]= useState(null);
+
+  // Dark mode
+  useEffect(()=>{ document.documentElement.className=darkMode?'':'light'; },[darkMode]);
+
+  // Restore session from localStorage
+  useEffect(()=>{
+    const token = localStorage.getItem('tf_token');
+    if(token){
+      api.setToken(token);
+      api.me().then(d=>{ setUser(d.user); setIsLoggedIn(true); setAuthChecked(true); })
+             .catch(()=>{ localStorage.removeItem('tf_token'); setAuthChecked(true); });
+    } else { setAuthChecked(true); }
+  },[]);
+
+  // Fetch global data after login
+  const fetchAll = useCallback(async()=>{
+    if(!isLoggedIn) return;
+    try {
+      const [s,w,p,o] = await Promise.all([
+        api.stocks(),
+        api.wallet(),
+        api.portfolio(),
+        api.orders(),
+      ]);
+      setStocks(s.stocks);
+      setWallet(w.wallet);
+      setPortfolio(p.portfolio);
+      setRecentOrders(o.orders);
+    } catch(e) { console.error('[App] fetchAll error:', e.message); }
+  },[isLoggedIn]);
+
+  useEffect(()=>{ fetchAll(); },[fetchAll]);
+
+  // Poll every 5 seconds for live feel
+  useEffect(()=>{
+    if(!isLoggedIn) return;
+    const id = setInterval(()=>{
+      api.wallet().then(d=>setWallet(d.wallet)).catch(()=>{});
+      api.stocks().then(d=>setStocks(d.stocks)).catch(()=>{});
+    }, 5000);
+    return ()=>clearInterval(id);
+  },[isLoggedIn]);
+
+  // Notifications
+  const addNotif = useCallback((n)=>{
+    const id = Date.now();
+    setNotifications(prev=>[...prev,{...n,id}]);
+    setTimeout(()=>setNotifications(prev=>prev.filter(x=>x.id!==id)), 5000);
+  },[]);
+  const removeNotif = useCallback(id=>{ setNotifications(prev=>prev.filter(n=>n.id!==id)); },[]);
+
+  // Auth handlers
+  const handleLogin = useCallback((u, token)=>{
+    setUser(u); setIsLoggedIn(true);
+  },[]);
+  const handleLogout = useCallback(()=>{
+    setIsLoggedIn(false); setUser(null);
+    setStocks(null); setWallet(null); setPortfolio(null); setRecentOrders(null);
+    api.setToken(null);
+    localStorage.removeItem('tf_token');
+    setPage('dashboard');
+  },[]);
+
+  // Pre-select for Order page (from Markets)
+  const clearPreselect = useCallback(()=>setPreselect(null),[]);
+
+  // Route map
+  const pages = {
+    dashboard: <Dashboard/>,
+    stocks:    <StocksPage/>,
+    order:     <OrderPage/>,
+    portfolio: <PortfolioPage/>,
+    wallet:    <WalletPage/>,
+    history:   <HistoryPage/>,
+    logs:      <LogsPage/>,
+  };
+
+  // Loading while checking stored auth
+  if(!authChecked){
+    return (
+      <div style={{minHeight:'100vh',background:'var(--bg)',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16}}>
+        <div style={{width:38,height:38,borderRadius:11,background:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <Icon name="chart" size={20} color="#07090f"/>
+        </div>
+        <span className="spinner spinner-lg"/>
+      </div>
+    );
+  }
+
+  if(!isLoggedIn) return <LoginPage onLogin={handleLogin}/>;
+
+  const ctxValue = {
+    user, wallet, stocks, portfolio, recentOrders,
+    refreshAll: fetchAll, addNotif,
+    page, setPage,
+    preselect, setPreselect, clearPreselect,
+    handleLogout,
+  };
+
+  return (
+    <AppCtx.Provider value={ctxValue}>
+      <NotifStack items={notifications} onRemove={removeNotif}/>
+      <Sidebar page={page} setPage={setPage} open={sidebarOpen} setOpen={setSidebarOpen}/>
+      {sidebarOpen&&<div className="mobile-overlay" onClick={()=>setSidebarOpen(false)}/>}
+      <div className="main">
+        <TickerTape stocks={stocks||[]}/>
+        <Topbar darkMode={darkMode} setDarkMode={setDarkMode} setSidebarOpen={setSidebarOpen}/>
+        <div className="content">
+          <div key={page} className="fade-up">
+            {pages[page]||<Dashboard/>}
+          </div>
+        </div>
+      </div>
+    </AppCtx.Provider>
+  );
+};
+
+
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<MainApp />);</script>
+
+</body>
+</html>
